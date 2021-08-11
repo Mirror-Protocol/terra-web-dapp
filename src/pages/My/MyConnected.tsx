@@ -8,7 +8,6 @@ import { useMyPool } from "../../data/my/pool"
 import { useMyFarming } from "../../data/my/farming"
 import { useMyGov } from "../../data/my/gov"
 import { useMyShortFarming } from "../../data/my/short"
-import useTxs from "../../data/stats/txs"
 
 import Tab from "../../components/Tab"
 import { Gutter } from "../../components/Grid"
@@ -21,7 +20,6 @@ import Farming from "./Farming"
 import ShortFarming from "./ShortFarming"
 import LimitOrder from "./LimitOrder"
 import Gov from "./Gov"
-import HistoryList from "./HistoryList"
 
 import styles from "./MyConnected.module.scss"
 
@@ -45,7 +43,6 @@ const MyConnected = () => {
   const farming = useMyFarming()
   const short = useMyShortFarming()
   const gov = useMyGov()
-  const txs = useTxs()
 
   const isLoading = [
     holding,
@@ -55,7 +52,6 @@ const MyConnected = () => {
     farming,
     short,
     gov,
-    txs,
   ].some(({ isLoading }) => isLoading)
 
   /* tab */
@@ -71,7 +67,6 @@ const MyConnected = () => {
   const hasPool = !!pool.dataSource.length
   const hasFarming = !!farming.dataSource.length || !!short.dataSource.length
   const hasGov = !!gov.dataSource.length || gt(gov.staked, 0)
-  const hasTxs = !!txs.data.length
 
   const tabs = useMemo(
     () =>
@@ -82,17 +77,8 @@ const MyConnected = () => {
         { label: Tabs.POOL, hidden: !hasPool },
         { label: Tabs.FARMING, hidden: !hasFarming },
         { label: Tabs.GOVERN, hidden: !hasGov },
-        { label: Tabs.HISTORY, hidden: !hasTxs },
       ].filter(({ hidden }) => !hidden),
-    [
-      hasBorrowing,
-      hasFarming,
-      hasGov,
-      hasHolding,
-      hasLimitOrder,
-      hasPool,
-      hasTxs,
-    ]
+    [hasBorrowing, hasFarming, hasGov, hasHolding, hasLimitOrder, hasPool]
   )
 
   const components = {
@@ -102,7 +88,6 @@ const MyConnected = () => {
     [Tabs.POOL]: [<Pool />],
     [Tabs.FARMING]: [<Farming />, <ShortFarming />],
     [Tabs.GOVERN]: [<Gov />],
-    [Tabs.HISTORY]: [<HistoryList {...txs} />],
   }
 
   // set tab as all if stored tab is invalid

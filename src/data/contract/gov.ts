@@ -10,7 +10,7 @@ import { addressState } from "../wallet"
 import { protocolQuery } from "./protocol"
 import alias from "./alias"
 
-export interface VoteHistoryItem extends PollData, Voter {
+export interface VoteHistoryItem extends PollData, Partial<Voter> {
   reward?: string
 }
 

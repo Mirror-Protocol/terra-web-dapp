@@ -83,7 +83,7 @@ export const factoryDistributionInfoQuery = selector({
   get: async ({ get }) => {
     const { contracts } = get(protocolQuery)
     const getContractQuery = get(getContractQueryQuery)
-    const response = await getContractQuery<{ weights: [string, number][] }>(
+    const response = await getContractQuery<{ weights: DistributionWeight[] }>(
       {
         contract: contracts["factory"],
         msg: { distribution_info: {} },
@@ -91,8 +91,15 @@ export const factoryDistributionInfoQuery = selector({
       "factoryDistributionInfo"
     )
 
-    return (token: string) =>
-      response?.weights.find(([addr]) => addr === token)?.[1]
+    return response?.weights
+  },
+})
+
+export const getDistributionWeightQuery = selector({
+  key: "getDistributionWeight",
+  get: ({ get }) => {
+    const weights = get(factoryDistributionInfoQuery)
+    return (token: string) => weights?.find(([addr]) => addr === token)?.[1]
   },
 })
 

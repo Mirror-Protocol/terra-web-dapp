@@ -6,7 +6,6 @@ import { getPath, MenuKey } from "../../routes"
 import { TradeType } from "../../types/Types"
 import Table from "../../components/Table"
 import Caption from "../../components/Caption"
-import Change from "../../components/Change"
 import { TooltipIcon } from "../../components/Tooltip"
 import Delisted from "../../components/Delisted"
 import LinkButton from "../../components/LinkButton"
@@ -59,10 +58,7 @@ const Holding = () => {
         {
           key: "price",
           title: "Terraswap Price",
-          render: (value, { change }) => [
-            <Formatted unit="UST">{value}</Formatted>,
-            <Change inline>{change}</Change>,
-          ],
+          render: (value) => <Formatted unit="UST">{value}</Formatted>,
           align: "right",
         },
         {
@@ -88,10 +84,7 @@ const Holding = () => {
           dataIndex: "token",
           render: (token, { delisted }) => {
             const link = delisted
-              ? {
-                  to: `/burn/${token}`,
-                  children: MenuKey.BURN,
-                }
+              ? undefined
               : {
                   to: {
                     pathname: getPath(MenuKey.TRADE),
@@ -101,7 +94,7 @@ const Holding = () => {
                   children: MenuKey.TRADE,
                 }
 
-            return <LinkButton {...link} size="xs" outline />
+            return link && <LinkButton {...link} size="xs" outline />
           },
           align: "right",
           fixed: "right",

@@ -15,7 +15,6 @@ interface LocalNetworkConfig {
   contract: string
   /** Graphql server URL */
   mantle: string
-  stats: string
   /** Contracts */
   shuttle: Record<ShuttleNetwork, string>
   /** Fixed fee */

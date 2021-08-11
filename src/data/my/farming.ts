@@ -1,9 +1,9 @@
 import { gt, sum, times } from "../../libs/math"
 import { PriceKey, StakingKey } from "../../hooks/contractKeys"
-import { getAssetsHelpers, useAssetsByNetwork } from "../stats/assets"
 import { useProtocol } from "../contract/protocol"
 import { useFindPrice, useFindStaking } from "../contract/normalize"
 import { useRewards } from "./rewards"
+import { useAssetsAPR } from "../apr/apr"
 import usePool from "../../forms/modules/usePool"
 
 export const useMyFarming = () => {
@@ -13,9 +13,8 @@ export const useMyFarming = () => {
   const findPrice = useFindPrice()
   const { contents: rewards, isLoading: isLoadingRewards } = useRewards()
   const getPool = usePool()
-  const assets = useAssetsByNetwork()
+  const assetsAPR = useAssetsAPR()
 
-  const longAPR = assets ? getAssetsHelpers(assets).longAPR : undefined
   const mir = getToken("MIR")
 
   const dataSource = listedAll
@@ -27,7 +26,7 @@ export const useMyFarming = () => {
       return {
         ...item,
         delisted: getIsDelisted(token),
-        apr: longAPR?.(token),
+        apr: assetsAPR[token]?.long,
         staked: findStaking(StakingKey.LPSTAKED, token),
         reward: findStaking(StakingKey.LPREWARD, token),
         withdrawable: fromLP,

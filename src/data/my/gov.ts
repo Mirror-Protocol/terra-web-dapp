@@ -1,25 +1,17 @@
-import { atom, selector } from "recoil"
 import { gt, times } from "../../libs/math"
 import { PriceKey } from "../../hooks/contractKeys"
-import { useStoreLoadable } from "../utils/loadable"
 import { uniqByKey } from "../utils/pagination"
 import { useProtocol } from "../contract/protocol"
 import { useGovStaker } from "../contract/contract"
 import { useMissingRewards, VoteHistoryItem } from "../contract/gov"
 import { useFindPrice, useGovStaked } from "../contract/normalize"
 import { usePollsByIds } from "../gov/polls"
-import { statsAccountQuery, useStatsAccount } from "../stats/account"
 
 const useVoteHistory = (): {
   contents: VoteHistoryItem[]
   isLoading: boolean
 } => {
   const { contents: govStaker, isLoading: isLoadingStaker } = useGovStaker()
-
-  const { contents: account, isLoading: isStatsAccountLoading } =
-    useStatsAccount()
-  const voteHistory = account?.voteHistory
-
   const { contents: missingRewards, isLoading: isMissingRewardsLoading } =
     useMissingRewards()
 
@@ -33,14 +25,8 @@ const useVoteHistory = (): {
   const { contents: pollsByIds, isLoading: isLoadingPolls } = usePollsByIds(ids)
   const pollsByIdsValues = Object.values(pollsByIds)
 
-  if (!voteHistory) return { isLoading: true, contents: [] }
-
   return {
-    isLoading:
-      isLoadingStaker ||
-      isStatsAccountLoading ||
-      isMissingRewardsLoading ||
-      isLoadingPolls,
+    isLoading: isLoadingStaker || isMissingRewardsLoading || isLoadingPolls,
     contents: !govStaker
       ? []
       : uniqByKey(
@@ -53,14 +39,8 @@ const useVoteHistory = (): {
               }
             }),
             ...govStaker.withdrawable_polls.map(([id, reward]) => {
-              const item = voteHistory.find(
-                ({ pollId }) => Number(pollId) === id
-              )!
-
               return {
                 ...pollsByIdsValues.find((poll) => poll.id === id)!,
-                vote: item.voteOption,
-                balance: item.amount,
                 reward,
                 id,
               }
@@ -70,24 +50,6 @@ const useVoteHistory = (): {
           "id"
         ).sort(({ id: a }, { id: b }) => b - a),
   }
-}
-
-const accGovRewardQuery = selector({
-  key: "accGovReward",
-  get: ({ get }) => {
-    const account = get(statsAccountQuery)
-    const reward = account?.accumulatedGovReward ?? "0"
-    return gt(reward, 0) ? reward : "0"
-  },
-})
-
-const accGovRewardState = atom({
-  key: "accGovRewardState",
-  default: "0",
-})
-
-export const useAccGovReward = () => {
-  return useStoreLoadable(accGovRewardQuery, accGovRewardState)
 }
 
 export const useMyGov = () => {

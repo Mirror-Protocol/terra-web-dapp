@@ -21,11 +21,3 @@ export const mantleURLQuery = selector({
     return mantle
   },
 })
-
-export const statsURLQuery = selector({
-  key: "statsURL",
-  get: ({ get }) => {
-    const { stats } = get(networkQuery)
-    return stats
-  },
-})

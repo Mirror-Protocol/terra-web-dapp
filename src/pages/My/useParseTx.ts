@@ -40,8 +40,6 @@ export const getBadge = (type: string) => {
       "GOV_CAST_POLL",
       "GOV_WITHDRAW_VOTING_REWARDS",
     ],
-
-    Airdrop: ["CLAIM_AIRDROP"],
   }
 
   const key = Object.entries(group).find(([key, value]) => value.includes(type))

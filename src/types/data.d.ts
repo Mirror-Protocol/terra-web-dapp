@@ -46,6 +46,8 @@ interface StakingPool {
   reward_index: string
 }
 
+type DistributionWeight = [string, number]
+
 /* Balance */
 interface StakingRewardInfo {
   reward_infos: RewardInfo[]

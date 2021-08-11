@@ -1,6 +1,6 @@
 import BigNumber from "bignumber.js"
 import { GENESIS } from "../../constants"
-import { useMirrorTokenCommunityBalance } from "../../data/contract/info"
+import { useMirrorTokenCommunityBalance } from "./info"
 import { gt, times } from "../../libs/math"
 import { toAmount } from "../../libs/parse"
 

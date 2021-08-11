@@ -1,5 +1,5 @@
 import { atom, selector } from "recoil"
-import { div, gt } from "../../libs/math"
+import { div, gt, times } from "../../libs/math"
 import { PriceKey, BalanceKey, StakingKey } from "../../hooks/contractKeys"
 import { useStore, useStoreLoadable } from "../utils/loadable"
 import { exchangeRatesQuery } from "../native/exchange"
@@ -8,7 +8,7 @@ import { useExternalBalances } from "../external/external"
 import { useExternalPrices } from "../external/external"
 import { protocolQuery, useProtocol } from "./protocol"
 import { collateralOracleAssetInfoQuery } from "./collateral"
-import { pairPoolQuery, oraclePriceQuery } from "./contract"
+import { pairPoolQuery, oraclePriceQuery, usePairPool } from "./contract"
 import { tokenBalanceQuery, lpTokenBalanceQuery } from "./contract"
 import { mintAssetConfigQuery, stakingRewardInfoQuery } from "./contract"
 import { govStakerQuery } from "./contract"
@@ -202,7 +202,7 @@ export const multipliersState = atom<Dictionary>({
 })
 
 /* MIR Price */
-const MIRPriceQuery = selector({
+export const MIRPriceQuery = selector({
   key: "MIRPrice",
   get: ({ get }) => {
     const { getToken } = get(protocolQuery)
@@ -355,6 +355,11 @@ export const useFindStaking = () => {
       slpRewardBalances,
     ].some(({ isLoading }) => isLoading),
   }
+}
+
+export const useLiquidity = () => {
+  const pairPool = usePairPool()
+  return dict(pairPool, (item) => times(parsePairPool(item).uusd, 2))
 }
 
 /* utils */

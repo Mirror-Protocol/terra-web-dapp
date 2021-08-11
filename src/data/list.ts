@@ -1,8 +1,9 @@
-import { PriceKey } from "../../hooks/contractKeys"
-import { div, gt, minus } from "../../libs/math"
-import { useFindPrice } from "../contract/normalize"
-import { useProtocol } from "../contract/protocol"
-import { useAssetsHelpersByNetwork, useFindChange } from "./assets"
+import { PriceKey } from "../hooks/contractKeys"
+import { div, gt, minus } from "../libs/math"
+import { useAssetsAPR } from "./apr/apr"
+import { useFindPrice, useLiquidity } from "./contract/normalize"
+import { useMinCollateralRatio } from "./contract/normalize"
+import { useProtocol } from "./contract/protocol"
 
 type FarmingType = "long" | "short"
 
@@ -12,9 +13,6 @@ export interface DefaultItem extends ListedItem {
   premium?: string
 
   liquidity: string
-  volume: string
-  marketCap: string
-  collateralValue: string
   minCollateralRatio: string
   apr: { long: string; short?: string }
 
@@ -28,34 +26,30 @@ export interface Item extends DefaultItem {
 export const useTerraAssetList = () => {
   const { listed } = useProtocol()
   const findPrice = useFindPrice()
-  const findChange = useFindChange()
-  const helpers = useAssetsHelpersByNetwork()
-  const { volume, liquidity, marketCap, collateralValue } = helpers
-  const { minCollateralRatio, longAPR, shortAPR } = helpers
+  const liquidity = useLiquidity()
+  const minCollateralRatio = useMinCollateralRatio()
+  const assetsAPR = useAssetsAPR()
 
   return listed
     .map((item): Item => {
       const { token } = item
       const pairPrice = findPrice(PriceKey.PAIR, token)
       const oraclePrice = findPrice(PriceKey.ORACLE, token)
-      const long = longAPR(token)
-      const short = shortAPR(token)
+      const assetAPR = assetsAPR[token]
+      const long = assetAPR?.long
+      const short = assetAPR?.short
 
       return {
         ...item,
         [PriceKey.PAIR]: pairPrice,
         [PriceKey.ORACLE]: oraclePrice,
-        change: findChange(PriceKey.PAIR, token),
         premium: oraclePrice
           ? minus(div(pairPrice, oraclePrice), 1)
           : undefined,
-        volume: volume(token),
-        liquidity: liquidity(token),
+        liquidity: liquidity[token],
         apr: { long, short },
         recommended: long && short && gt(short, long) ? "short" : "long",
-        marketCap: marketCap(token),
-        collateralValue: collateralValue(token),
-        minCollateralRatio: minCollateralRatio(token),
+        minCollateralRatio: minCollateralRatio[token],
       }
     })
     .filter(({ liquidity }) => !liquidity || gt(liquidity, 0))

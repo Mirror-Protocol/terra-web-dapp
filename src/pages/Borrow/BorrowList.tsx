@@ -1,35 +1,19 @@
 import Tooltips from "../../lang/Tooltips"
-import { gt, minus, number } from "../../libs/math"
+import { gt } from "../../libs/math"
 import { PriceKey } from "../../hooks/contractKeys"
-import { useTerraAssetList } from "../../data/stats/list"
+import { useTerraAssetList } from "../../data/list"
 import Table from "../../components/Table"
 import Formatted from "../../components/Formatted"
 import Percent from "../../components/Percent"
 import AssetItem from "../../components/AssetItem"
-import useListFilter, { Sorter } from "../../components/useListFilter"
+import useListFilter from "../../components/useListFilter"
 import { TooltipIcon } from "../../components/Tooltip"
 import AssetsIdleTable from "../../containers/AssetsIdleTable"
 import { MintType } from "../../types/Types"
 
-const Sorters: Dictionary<Sorter> = {
-  MARKETCAP: {
-    label: "Market Cap",
-    compare: (a, b) => number(minus(b.marketCap, a.marketCap)),
-  },
-  COLLATERALVALUE: {
-    label: "Collateral Value",
-    compare: (a, b) => number(minus(b.collateralValue, a.collateralValue)),
-  },
-  MINCOLLATERALRATIO: {
-    label: "Minimum Collateral Ratio",
-    compare: (a, b) =>
-      number(minus(b.minCollateralRatio, a.minCollateralRatio)),
-  },
-}
-
 const BorrowList = () => {
   const list = useTerraAssetList()
-  const { filter, compare, renderSearch } = useListFilter("MARKETCAP", Sorters)
+  const { filter, compare, renderSearch } = useListFilter()
 
   const dataSource = list
     .filter(({ symbol }) => symbol !== "MIR")
@@ -56,11 +40,30 @@ const BorrowList = () => {
               bold: true,
             },
             {
+              key: PriceKey.PAIR,
+              title: "Terraswap Price",
+              render: (price) =>
+                gt(price, 0) && <Formatted unit="UST">{price}</Formatted>,
+              align: "right",
+              desktop: true,
+            },
+            {
               key: PriceKey.ORACLE,
               title: "Oracle Price",
               render: (price) =>
                 gt(price, 0) && <Formatted unit="UST">{price}</Formatted>,
               align: "right",
+            },
+            {
+              key: "premium",
+              title: (
+                <TooltipIcon content={Tooltips.Trade.Premium}>
+                  Premium
+                </TooltipIcon>
+              ),
+              render: (value) => <Percent>{value}</Percent>,
+              align: "right",
+              desktop: true,
             },
             {
               key: "minCollateralRatio",
@@ -70,30 +73,6 @@ const BorrowList = () => {
                 </TooltipIcon>
               ),
               render: (value) => <Percent dp={0}>{value}</Percent>,
-              align: "right",
-              desktop: true,
-            },
-            {
-              key: "collateralValue",
-              title: (
-                <TooltipIcon content={Tooltips.Mint.CollateralValue}>
-                  Collateral Value
-                </TooltipIcon>
-              ),
-              render: (value) =>
-                gt(value, 0) && <Formatted symbol="uusd">{value}</Formatted>,
-              align: "right",
-              desktop: true,
-            },
-            {
-              key: "marketCap",
-              title: (
-                <TooltipIcon content={Tooltips.Mint.MarketCap}>
-                  Market Cap
-                </TooltipIcon>
-              ),
-              render: (value) =>
-                gt(value, 0) && <Formatted symbol="uusd">{value}</Formatted>,
               align: "right",
               desktop: true,
             },

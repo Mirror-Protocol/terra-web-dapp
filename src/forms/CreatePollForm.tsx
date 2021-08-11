@@ -14,8 +14,8 @@ import { multipliersQuery } from "../data/contract/normalize"
 import { useFindBalance } from "../data/contract/normalize"
 import { useGovConfig } from "../data/gov/config"
 import { communityConfigQuery } from "../data/contract/info"
+import { getDistributionWeightQuery } from "../data/contract/info"
 import { mintAssetConfigQuery } from "../data/contract/contract"
-import { factoryDistributionInfoQuery } from "../data/contract/info"
 
 import { TooltipIcon } from "../components/Tooltip"
 import FormGroup from "../components/FormGroup"
@@ -83,8 +83,8 @@ const CreatePollForm = ({ type, headings }: Props) => {
   const communityConfig = useRecoilValueLoadable(communityConfigQuery)
   const mintAssetConfig = useRecoilValueLoadable(mintAssetConfigQuery)
   const multipliers = useRecoilValueLoadable(multipliersQuery)
-  const factoryDistributionInfo = useRecoilValueLoadable(
-    factoryDistributionInfoQuery
+  const getDistributionWeight = useRecoilValueLoadable(
+    getDistributionWeightQuery
   )
 
   const spend_limit =
@@ -101,8 +101,8 @@ const CreatePollForm = ({ type, headings }: Props) => {
     multipliers.state === "hasValue" ? multipliers.contents?.[token] : undefined
 
   const getWeight = (token: string) =>
-    factoryDistributionInfo.state === "hasValue"
-      ? factoryDistributionInfo.contents(token)
+    getDistributionWeight.state === "hasValue"
+      ? getDistributionWeight.contents(token)
       : undefined
 
   const getFieldKeys = () => {
