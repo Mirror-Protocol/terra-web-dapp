@@ -18,9 +18,9 @@ const networks: Record<string, MirrorNetworkInfo> = {
   testnet: {
     name: "testnet",
     chainID: "bombay-12",
-    lcd: "https://tequila-lcd.terra.dev",
-    contract: "https://whitelist.mirror.finance/tequila.json",
-    mantle: "https://tequila-mantle.terra.dev/",
+    lcd: "https://bombay-lcd.terra.dev",
+    contract: "https://whitelist.mirror.finance/bombay.json",
+    mantle: "https://bombay-mantle.terra.dev/",
     shuttle: {
       ethereum: "terra10a29fyas9768pw8mewdrar3kzr07jz8f3n73t3",
       bsc: "terra1paav7jul3dzwzv78j0k59glmevttnkfgmgzv2r",
