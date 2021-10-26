@@ -245,7 +245,9 @@ const MintForm = ({ position, type }: Props) => {
   /* latest price */
   const isMarketClosed1 = isClosed(token1)
   const isMarketClosed2 = isClosed(token2)
-  const isMarketClosed = !edit && (isMarketClosed1 || isMarketClosed2)
+  const isMarketClosed = isMarketClosed1 || isMarketClosed2
+  const isTryingToWithdrawOnMarketClosed =
+    isMarketClosed && prevCollateral && lt(amount1, prevCollateral.amount)
 
   const exchangeLink =
     (isMarketClosed1 && symbol1 === "mGLXY") ||
@@ -550,7 +552,9 @@ const MintForm = ({ position, type }: Props) => {
       ? [<>{linkToBuy} to close position</>]
       : undefined
 
-  const messages = isMarketClosed
+  const messages = isTryingToWithdrawOnMarketClosed
+    ? ["Withdrawal is only available during market hours"]
+    : isMarketClosed && !edit
     ? [marketClosedMessage]
     : touched[Key.ratio]
     ? ratioMessages
@@ -566,7 +570,8 @@ const MintForm = ({ position, type }: Props) => {
 
   const disabled =
     findBalanceStore.isLoading ||
-    isMarketClosed ||
+    (isMarketClosed && !edit) ||
+    isTryingToWithdrawOnMarketClosed ||
     invalidRepay ||
     (!close ? invalid : !!closeMessages)
 
