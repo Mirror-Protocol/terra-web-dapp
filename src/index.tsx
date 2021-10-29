@@ -1,6 +1,6 @@
 import { StrictMode } from "react"
 import { render } from "react-dom"
-import { BrowserRouter as Router } from "react-router-dom"
+import { HashRouter as Router } from "react-router-dom"
 import { RecoilRoot } from "recoil"
 import { QueryClient, QueryClientProvider } from "react-query"
 import * as Sentry from "@sentry/react"
