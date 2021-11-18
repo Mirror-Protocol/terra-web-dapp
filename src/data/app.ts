@@ -5,7 +5,7 @@ import { PRICES_POLLING_INTERVAL } from "../constants"
 
 export const locationKeyState = atom({
   key: "locationKey",
-  default: "",
+  default: 0,
 })
 
 export const priceKeyIndexState = atom({

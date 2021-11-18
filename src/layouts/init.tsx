@@ -8,12 +8,12 @@ import { locationKeyState } from "../data/app"
 import { networkNameState } from "../data/network"
 
 export const useLocationKey = () => {
-  const { key } = useLocation()
+  const { pathname, hash, search } = useLocation()
   const setLocationKey = useSetRecoilState(locationKeyState)
 
   useEffect(() => {
-    key && setLocationKey(key)
-  }, [key, setLocationKey])
+    setLocationKey((k) => k + 1)
+  }, [pathname, hash, search, setLocationKey])
 }
 
 export const useInitAddress = () => {
