@@ -26,7 +26,17 @@ interface ListedItemExternal extends DefaultListedItem {
   icon: string
 }
 
-interface DelistItem {
+type DelistItem = DefaultDelistItem | StockEventItem
+
+interface DefaultDelistItem {
+  type: "DELIST"
+  symbol: string
+  date: string
+  poll: number
+}
+
+interface StockEventItem {
+  type: "STOCKEVENT"
   symbol: string
   date: string
   ratio: string

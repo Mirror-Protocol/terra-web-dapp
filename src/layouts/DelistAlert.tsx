@@ -5,20 +5,29 @@ import DelistModal from "./DelistModal"
 
 const DelistAlert = () => {
   const { delist } = useProtocol()
-  const filter = (token: string) => !!delist[token]
+  const filterDelist = (token: string) => delist[token]?.type === "DELIST"
+  const filterStockEvent = (token: string) =>
+    delist[token]?.type === "STOCKEVENT"
 
   const { holding, borrowing, farming, short, limitOrder } = useMyTotal()
 
-  const delistedTokens = uniq([
+  const tokens = uniq([
     ...holding.dataSource.map(({ token }) => token),
     ...borrowing.dataSource.map(({ collateralAsset }) => collateralAsset.token),
     ...borrowing.dataSource.map(({ mintedAsset }) => mintedAsset.token),
     ...farming.dataSource.map(({ token }) => token),
     ...short.dataSource.map(({ token }) => token),
     ...limitOrder.dataSource.map(({ token }) => token),
-  ]).filter(filter)
+  ])
 
-  return delistedTokens.length ? <DelistModal tokens={delistedTokens} /> : null
+  const delistTokens = tokens.filter(filterDelist)
+  const stockEventTokens = tokens.filter(filterStockEvent)
+
+  return delistTokens.length ? (
+    <DelistModal type="DELIST" tokens={delistTokens} />
+  ) : stockEventTokens.length ? (
+    <DelistModal type="STOCKEVENT" tokens={stockEventTokens} />
+  ) : null
 }
 
 export default DelistAlert

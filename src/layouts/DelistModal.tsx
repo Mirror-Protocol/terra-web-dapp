@@ -1,4 +1,5 @@
-import { useState } from "react"
+import { Fragment, useState } from "react"
+import { Link } from "react-router-dom"
 import { format } from "date-fns"
 import { FMT } from "../constants"
 import useLocalStorage from "../libs/useLocalStorage"
@@ -13,9 +14,13 @@ import styles from "./DelistModal.module.scss"
 
 interface Props {
   tokens: string[]
+  type: DelistItem["type"]
 }
 
-const DelistModal = (props: Props) => {
+const LINK =
+  "https://docs.mirror.finance/protocol/mirrored-assets-massets#delisting-and-migration"
+
+const DelistModal = ({ type, ...props }: Props) => {
   const { delist, getSymbol } = useProtocol()
   const modal = useModal(true)
   const [checked, setChecked] = useState(false)
@@ -29,15 +34,58 @@ const DelistModal = (props: Props) => {
   }
 
   const plural = tokens.length > 1
+  const pluralAsset = plural ? "assets" : "asset"
+  const pluralDate = plural ? "dates" : "date"
+
+  const contents = {
+    DELIST: {
+      title: "Delisting Notification",
+      action: "delisted",
+      when: Object.values(delist)
+        .filter((item) => "poll" in item)
+        .map((item, index) => {
+          const { poll } = item as DefaultDelistItem
+          return (
+            <Fragment key={poll}>
+              {!!index && ", "}
+              <Link className={styles.link} to={`/gov/poll/${poll}`}>
+                Poll {poll}
+              </Link>
+            </Fragment>
+          )
+        }),
+      link: "How does delisting work on Mirror Protocol?",
+      details: [
+        `LP staking rewards will immediately stop.`,
+        `Delisted ${pluralAsset} can be burned to claim UST at the last reported price.`,
+        `Delisted ${pluralAsset} can be withdrawn from liquidity pools to be burnt or be used to close existing borrowed positions.`,
+        `Delisted ${pluralAsset} cannot be traded, borrowed or provided to liquidity pools.`,
+        `If you want to close your borrowed position immediately, make sure that you acquire a sufficient amount of mAsset before delisting.`,
+      ],
+    },
+    STOCKEVENT: {
+      title: "Stock Split / Merge Notification",
+      action: "affected by a stock split / merge",
+      when: "the market closes on the last trading day before the stock split / merge.",
+      link: "How does stock split/merge work on Mirror Protocol?",
+      details: [
+        `LP staking rewards will immediately stop.`,
+        `Delisted ${pluralAsset} can be burned to claim UST at the last price before stock split / merge.`,
+        `Delisted ${pluralAsset} can be withdrawn from liquidity pools to be burnt or be used to close existing borrowed positions.`,
+        `Delisted ${pluralAsset} cannot be traded, borrowed or provided to liquidity pools.`,
+        `If you want to close your borrowed position immediately, make sure that you acquire a sufficient amount of mAsset before delisting.`,
+      ],
+    },
+  }[type]
 
   return !tokens.length ? null : (
     <Modal {...modal}>
-      <Card title="Stock Split / Merge Notification">
+      <Card title={contents.title}>
         <div className={styles.contents}>
           <header>
             <p className={styles.p}>
-              The following {plural ? "assets" : "asset"} will be affected by a
-              stock split / merge on the {plural ? "dates" : "date"} below:
+              The following {pluralAsset} will be {contents.action} on the{" "}
+              {pluralDate} below:
             </p>
           </header>
 
@@ -61,52 +109,29 @@ const DelistModal = (props: Props) => {
           </section>
 
           <p className={styles.p}>
-            These assets will be <strong>DELISTED</strong> as soon as the market
-            closes on the last trading day before the stock split / merge.
+            These {pluralAsset} will be <strong>DELISTED</strong> as soon as{" "}
+            {contents.when}
           </p>
 
           <ul className={styles.list}>
-            <li>
-              <p>LP staking rewards will immediately stop.</p>
-            </li>
-            <li>
-              <p>
-                Delisted assets can be burned to claim UST at the last price
-                before stock split / merge.
-              </p>
-            </li>
-            <li>
-              <p>
-                Delisted assets can be withdrawn from liquidity pools to be
-                burnt or be used to close existing borrowed positions.
-              </p>
-            </li>
-            <li>
-              <p>
-                Delisted assets cannot be traded, borrowed or provided to
-                liquidity pools.
-              </p>
-            </li>
-            <li>
-              <p>
-                If you want to close your borrowed position immediately, make
-                sure that you acquire a sufficient amount of mAsset before
-                delisting.
-              </p>
-            </li>
+            {contents.details.map((text) => (
+              <li key={text}>
+                <p>{text}</p>
+              </li>
+            ))}
           </ul>
 
           <footer className={styles.footer}>
-            <p className={styles.italic}>
-              New assets will replace delisted ones on the{" "}
-              {plural ? "dates" : "date"} mentioned above.
-            </p>
+            {type === "STOCKEVENT" && (
+              <p className={styles.italic}>
+                New {pluralAsset} will replace delisted ones on the {pluralDate}{" "}
+                mentioned above.
+              </p>
+            )}
+
             <p>
-              <ExtLink
-                href="https://docs.mirror.finance/protocol/mirrored-assets-massets#delisting-and-migration"
-                className={styles.link}
-              >
-                How does stock split/merge work on Mirror Protocol?
+              <ExtLink href={LINK} className={styles.link}>
+                {contents.link}
               </ExtLink>
             </p>
 

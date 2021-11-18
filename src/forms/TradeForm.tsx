@@ -380,7 +380,7 @@ const TradeForm = ({ type }: { type: TradeType }) => {
   return (
     <WithPriceChart token={token}>
       {type === TradeType.BUY && !!delist[token] && (
-        <DelistModal tokens={[token]} key={token} />
+        <DelistModal type={delist[token].type} tokens={[token]} key={token} />
       )}
 
       <FormContainer {...container} {...tax}>
