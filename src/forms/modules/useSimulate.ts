@@ -20,25 +20,24 @@ interface Simulated {
   price: string
 }
 
-interface Result {
-  params: Params
-  simulated: Simulated
-}
+type Result =
+  | { params: Params; simulated: Simulated }
+  | { params: Params; error: Error }
 
 export default (params: Params, isLimitOrder: boolean) => {
   const { amount, token, pair, reverse, type } = params
   const [results, setResults] = useState<Result[]>([])
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<Error>()
 
   const valid = amount && gt(amount, 0) && token && pair && !isLimitOrder
   const simulate = useRecoilValue(pairSimulateQuery)
 
   useEffect(() => {
     const fn = async () => {
+      const params = { amount, token, pair, reverse, type }
+
       try {
         setLoading(true)
-        const params = { amount, token, pair, reverse, type }
         const result = await simulate(params)
 
         const simulatedAmount = !reverse
@@ -65,7 +64,9 @@ export default (params: Params, isLimitOrder: boolean) => {
           })
         }
       } catch (error) {
-        setError(error as Error)
+        setResults((prev) => {
+          return [...prev, { params, error: error as Error }]
+        })
       }
 
       setLoading(false)
@@ -74,9 +75,7 @@ export default (params: Params, isLimitOrder: boolean) => {
     valid && fn()
   }, [valid, simulate, amount, token, pair, reverse, type])
 
-  const simulated = results.find((result) =>
-    equals(result.params, params)
-  )?.simulated
+  const result = results.find((result) => equals(result.params, params))
 
-  return { simulated, loading, error }
+  return { simulated: undefined, error: undefined, ...result, loading }
 }
