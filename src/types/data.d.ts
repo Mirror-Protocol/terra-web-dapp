@@ -114,3 +114,10 @@ interface MantleCoin {
   Amount: string
   Denom: string
 }
+
+/* CDP */
+interface CDP {
+  id: string
+  collateralToken: string
+  mintAmount: string
+}

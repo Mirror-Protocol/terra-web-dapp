@@ -5,12 +5,13 @@ import { last } from "ramda"
 export const iterateAllPage = async <T, Offset>(
   query: (offset?: Offset) => Promise<T[]>,
   nextOffset: (item?: T) => Offset | undefined,
-  limit: number
+  limit: number,
+  until?: (data: T[]) => boolean
 ) => {
   const iterate = async (acc: T[], offset?: Offset): Promise<T[]> => {
     const data = await query(offset)
-    const done = data.length < limit
     const next = [...acc, ...data]
+    const done = until?.(next) ?? data.length < limit
 
     return done ? next : await iterate(next, nextOffset(last(data)))
   }

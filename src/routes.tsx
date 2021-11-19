@@ -9,6 +9,7 @@ import Gov from "./pages/Gov/Gov"
 
 /* Txs */
 import Send from "./pages/Txs/Send"
+import Burn from "./pages/Txs/Burn"
 import Mint from "./pages/Mint/Mint"
 import Stake from "./pages/Stake/Stake"
 import ClaimRewards from "./pages/Txs/ClaimRewards"
@@ -31,6 +32,7 @@ export enum MenuKey {
   GOV = "Govern",
 
   SEND = "Send",
+  BURN = "Burn",
   MINT = "Mint",
   STAKE = "Stake",
   CLAIMREWARDS = "Claim Rewards",
@@ -46,6 +48,7 @@ export const menu: Dictionary<RouteProps> = {
   [MenuKey.GOV]: { path: "/gov", component: Gov },
 
   [MenuKey.SEND]: { path: "/send", component: Send },
+  [MenuKey.BURN]: { path: "/burn/:token", component: Burn },
   [MenuKey.MINT]: { path: "/mint", component: Mint },
   [MenuKey.STAKE]: { path: "/stake", component: Stake },
   [MenuKey.CLAIMREWARDS]: { path: "/claim/rewards", component: ClaimRewards },

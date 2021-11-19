@@ -84,7 +84,10 @@ const Holding = () => {
           dataIndex: "token",
           render: (token, { delisted }) => {
             const link = delisted
-              ? undefined
+              ? {
+                  to: `/burn/${token}`,
+                  children: MenuKey.BURN,
+                }
               : {
                   to: {
                     pathname: getPath(MenuKey.TRADE),
