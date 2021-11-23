@@ -34,6 +34,7 @@ const DelistModal = ({ type, ...props }: Props) => {
   }
 
   const plural = tokens.length > 1
+  const pluralThis = plural ? "These" : "This"
   const pluralAsset = plural ? "assets" : "asset"
   const pluralDate = plural ? "dates" : "date"
 
@@ -41,9 +42,10 @@ const DelistModal = ({ type, ...props }: Props) => {
     DELIST: {
       title: "Delisting Notification",
       action: "delisted",
-      when: Object.values(delist)
-        .filter((item) => "poll" in item)
-        .map((item, index) => {
+      when: Object.entries(delist)
+        .filter(([token]) => tokens.includes(token))
+        .filter(([, item]) => "poll" in item)
+        .map(([, item], index) => {
           const { poll } = item as DefaultDelistItem
           return (
             <Fragment key={poll}>
@@ -109,8 +111,8 @@ const DelistModal = ({ type, ...props }: Props) => {
           </section>
 
           <p className={styles.p}>
-            These {pluralAsset} will be <strong>DELISTED</strong> as soon as{" "}
-            {contents.when}
+            {pluralThis} {pluralAsset} will be <strong>DELISTED</strong> as soon
+            as {contents.when}
           </p>
 
           <ul className={styles.list}>
