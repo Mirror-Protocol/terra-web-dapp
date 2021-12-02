@@ -67,6 +67,11 @@ const BurnForm = () => {
     },
   ]
 
+  const uusdCollaterals = byCollateralToken(list)["uusd"]?.map(
+    ({ collateral }) => collateral
+  )
+  const uusd = uusdCollaterals ? sum(uusdCollaterals) : "0"
+
   /* submit */
   const newContractMsg = useNewContractMsg()
   const createSend = (msg: object, amount?: string) => ({
@@ -82,11 +87,12 @@ const BurnForm = () => {
 
   /* result */
   const parseTx = useBurnReceipt()
+  const tax = { pretax: uusd, deduct: true }
   const container = { contents, data, parseTx, label: "Burn" }
 
   return (
     <Container sm>
-      <FormContainer {...container} />
+      <FormContainer {...container} {...tax} />
     </Container>
   )
 }
