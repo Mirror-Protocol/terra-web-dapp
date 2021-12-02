@@ -57,7 +57,7 @@ const Gov = () => {
         },
         {
           key: "vote",
-          render: (answer) => capitalize(answer),
+          render: (answer) => (answer ? capitalize(answer) : ""),
           align: "center",
         },
         {
