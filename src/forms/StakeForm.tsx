@@ -38,7 +38,7 @@ interface Props {
 
 const StakeForm = ({ type, tab, gov, ...props }: Props) => {
   /* context */
-  const { state } = useLocation<{ token: string }>()
+  const { state } = useLocation<{ token: string; withdraw?: boolean }>()
   const token = props.token ?? state?.token
   const { contracts, whitelist, getSymbol } = useProtocol()
   const { contents: findBalance } = useFindBalance()
@@ -85,6 +85,7 @@ const StakeForm = ({ type, tab, gov, ...props }: Props) => {
   }
 
   /* form:hook */
+  const withdraw = state?.withdraw
   const initial = { [Key.value]: "" }
   const form = useForm<Key>(initial, validate)
   const { values, setValue, getFields, attrs, invalid } = form
@@ -143,6 +144,15 @@ const StakeForm = ({ type, tab, gov, ...props }: Props) => {
   const newContractMsg = useNewContractMsg()
   const { pair, lpToken } = whitelist[token] ?? {}
   const assetToken = { asset_token: token }
+
+  const unbondMsg = newContractMsg(contracts["staking"], {
+    unbond: { ...assetToken, amount },
+  })
+
+  const withdrawMsg = newContractMsg(lpToken, {
+    send: { amount, contract: pair, msg: toBase64({ withdraw_liquidity: {} }) },
+  })
+
   const data = {
     [StakeType.STAKE]: [
       gov
@@ -167,18 +177,9 @@ const StakeForm = ({ type, tab, gov, ...props }: Props) => {
             withdraw_voting_tokens: { amount },
           }),
         ]
-      : [
-          newContractMsg(contracts["staking"], {
-            unbond: { ...assetToken, amount },
-          }),
-          newContractMsg(lpToken, {
-            send: {
-              amount,
-              contract: pair,
-              msg: toBase64({ withdraw_liquidity: {} }),
-            },
-          }),
-        ],
+      : withdraw
+      ? [unbondMsg, withdrawMsg]
+      : [unbondMsg],
   }[type as StakeType]
 
   const govUnstakeMessages = gt(locked, 0)
@@ -189,6 +190,8 @@ const StakeForm = ({ type, tab, gov, ...props }: Props) => {
     gov && type === StakeType.UNSTAKE ? govUnstakeMessages : undefined
 
   const disabled = invalid
+  const label =
+    !gov && type === StakeType.UNSTAKE && !withdraw ? "Unbond" : undefined
 
   /* result */
   const parseTx = useStakeReceipt(type, !!gov)
@@ -197,10 +200,10 @@ const StakeForm = ({ type, tab, gov, ...props }: Props) => {
 
   return (
     <WithPriceChart token={token}>
-      <FormContainer {...container}>
+      <FormContainer {...container} label={label}>
         <FormGroup {...fields[Key.value]} />
 
-        {!gov && type === StakeType.UNSTAKE && (
+        {!gov && type === StakeType.UNSTAKE && withdraw && (
           <>
             <FormIcon name="ArrowDown" />
             <FormGroup {...estimatedField} />

@@ -97,19 +97,26 @@ const Farming = () => {
         {
           key: "actions",
           dataIndex: "token",
-          render: (token) => (
-            <LinkButton
-              to={{
-                pathname: getPath(MenuKey.STAKE),
-                hash: StakeType.UNSTAKE,
-                state: { token },
-              }}
-              size="xs"
-              outline
-            >
-              {capitalize(StakeType.UNSTAKE)}
-            </LinkButton>
-          ),
+          render: (token) => {
+            const to = {
+              pathname: getPath(MenuKey.STAKE),
+              hash: StakeType.UNSTAKE,
+            }
+            return (
+              <>
+                <LinkButton to={{ ...to, state: { token } }} size="xs" outline>
+                  Unbond
+                </LinkButton>
+                <LinkButton
+                  to={{ ...to, state: { token, withdraw: true } }}
+                  size="xs"
+                  outline
+                >
+                  {capitalize(StakeType.UNSTAKE)}
+                </LinkButton>
+              </>
+            )
+          },
           align: "right",
           fixed: "right",
         },
