@@ -13,7 +13,8 @@ export enum PollType {
   TEXT_WHITELIST = "TEXT-WHITELIST",
   WHITELIST = "WHITELIST",
   PREIPO = "PREIPO",
-  DELIST = "DELIST",
+  DELIST_COLLATERAL = "DELIST-COLLATERAL",
+  DELIST_ASSET = "DELIST-ASSET",
   INFLATION = "INFLATION",
   MINT_UPDATE = "MINT-UPDATE",
   GOV_UPDATE = "GOV-UPDATE",
@@ -33,7 +34,12 @@ const Groups = [
   },
   {
     title: "Asset Listing",
-    items: [PollType.WHITELIST, PollType.PREIPO, PollType.DELIST],
+    items: [
+      PollType.WHITELIST,
+      PollType.PREIPO,
+      PollType.DELIST_COLLATERAL,
+      PollType.DELIST_ASSET,
+    ],
   },
   {
     title: "Reward Distribution Ratio",
@@ -66,7 +72,15 @@ const polls: Record<PollType, { title: string; desc: string }> = {
     title: "Register Pre-IPO parameters",
     desc: "Register the parameters for an asset scheduled to be offered publicly",
   },
-  [PollType.DELIST]: {
+  [PollType.DELIST_ASSET]: {
+    title: "Delist mAsset",
+    desc: "Vote for an mAsset to be delisted from Mirror Protocol",
+  },
+  [PollType.DELIST_COLLATERAL]: {
+    title: "Delist collateral",
+    desc: "Vote for a collateral to be delisted from Mirror Protocol",
+  },
+  [PollType.DELIST_ASSET]: {
     title: "Delist mAsset",
     desc: "Vote for an mAsset to be delisted from Mirror Protocol",
   },

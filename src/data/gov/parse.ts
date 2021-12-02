@@ -17,8 +17,10 @@ const parsePollQuery = selector({
       const type =
         "whitelist" in decoded
           ? PollType.WHITELIST
+          : "revoke_collateral_asset" in decoded
+          ? PollType.DELIST_COLLATERAL
           : "revoke_asset" in decoded
-          ? PollType.DELIST
+          ? PollType.DELIST_ASSET
           : "pass_command" in decoded
           ? PollType.MINT_UPDATE
           : "update_weight" in decoded
@@ -34,6 +36,8 @@ const parsePollQuery = selector({
       const parsed =
         "whitelist" in decoded
           ? parseWhitelist(decoded.whitelist)
+          : "revoke_collateral_asset" in decoded
+          ? parseRevokeCollateral(decoded.revoke_collateral_asset)
           : "revoke_asset" in decoded
           ? parseRevokeAsset(decoded.revoke_asset)
           : "pass_command" in decoded
@@ -67,6 +71,11 @@ const parsePollQuery = selector({
           ),
         ],
       }
+    }
+
+    const parseRevokeCollateral = ({ asset_token }: RevokeCollateral) => {
+      const symbol = getSymbol(asset_token)
+      return { contents: parseContents({ asset: symbol }) }
     }
 
     const parseRevokeAsset = ({ asset_token, end_price }: RevokeAsset) => {

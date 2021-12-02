@@ -148,7 +148,8 @@ const CreatePollForm = ({ type, headings }: Props) => {
         Key.minCollateralRatioAfterIPO,
         Key.price,
       ],
-      [PollType.DELIST]: [...defaultKeys, Key.asset],
+      [PollType.DELIST_COLLATERAL]: [...defaultKeys, Key.asset],
+      [PollType.DELIST_ASSET]: [...defaultKeys, Key.asset],
       [PollType.INFLATION]: [...defaultKeys, Key.asset, Key.weight],
       [PollType.MINT_UPDATE]: [
         ...defaultKeys,
@@ -336,12 +337,15 @@ const CreatePollForm = ({ type, headings }: Props) => {
   const deposit = config?.proposal_deposit ?? "0"
 
   /* render:form */
-  const isCollateral = type === PollType.COLLATERAL
+  const isCollateral =
+    type === PollType.COLLATERAL || type === PollType.DELIST_COLLATERAL
+
   const selectAssetConfig: Config = {
     token: asset,
     onSelect: (value) => setValue(Key.asset, value),
     validate: isCollateral ? undefined : ({ symbol }) => symbol !== "MIR",
     native: isCollateral ? ["uluna"] : undefined,
+    showExternal: isCollateral,
   }
 
   const select = useSelectAsset(selectAssetConfig)
@@ -352,7 +356,8 @@ const CreatePollForm = ({ type, headings }: Props) => {
     [PollType.TEXT_PREIPO]: "Reason for listing",
     [PollType.WHITELIST]: "Description",
     [PollType.PREIPO]: "Description",
-    [PollType.DELIST]: "Description",
+    [PollType.DELIST_COLLATERAL]: "Description",
+    [PollType.DELIST_ASSET]: "Description",
     [PollType.INFLATION]: "Reason for modifying weight parameter",
     [PollType.MINT_UPDATE]: "Reason for modifying mint parameter",
     [PollType.GOV_UPDATE]: "Reason for modifying governance parameter",
@@ -735,7 +740,11 @@ const CreatePollForm = ({ type, headings }: Props) => {
       contract: factory,
       msg: toBase64({ whitelist: whitelistMessage }),
     },
-    [PollType.DELIST]: {
+    [PollType.DELIST_COLLATERAL]: {
+      contract: collateralOracle,
+      msg: toBase64({ revoke_collateral_asset: revokeAsset }),
+    },
+    [PollType.DELIST_ASSET]: {
       contract: factory,
       msg: toBase64({ revoke_asset: revokeAsset }),
     },

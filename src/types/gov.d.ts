@@ -3,6 +3,7 @@ type EncodedPassCommandMsg = string
 
 type DecodedExecuteMsg =
   | { whitelist: Whitelist }
+  | { revoke_collateral_asset: RevokeCollateral }
   | { revoke_asset: RevokeAsset }
   | { pass_command: PassCommand }
   | { update_weight: UpdateWeight }
@@ -15,6 +16,10 @@ interface Whitelist {
   symbol: string
   oracle_feeder: string
   params: AssetParams
+}
+
+interface RevokeCollateral {
+  asset_token: string
 }
 
 interface RevokeAsset {
