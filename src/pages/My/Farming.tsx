@@ -1,6 +1,5 @@
 import Tooltips from "../../lang/Tooltips"
 import { formatAsset } from "../../libs/parse"
-import { capitalize } from "../../libs/utils"
 import getLpName from "../../libs/getLpName"
 import { useProtocol } from "../../data/contract/protocol"
 import { useMyFarming } from "../../data/my/farming"
@@ -112,7 +111,7 @@ const Farming = () => {
                   size="xs"
                   outline
                 >
-                  {capitalize(StakeType.UNSTAKE)}
+                  Withdraw
                 </LinkButton>
               </>
             )
