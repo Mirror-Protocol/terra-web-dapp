@@ -679,6 +679,10 @@ const CreatePollForm = ({ type, headings }: Props) => {
   }
 
   /* Type.DELIST */
+  const revokeCollateral = {
+    asset: toAssetInfo(asset),
+  }
+
   const revokeAsset = {
     asset_token: asset,
   }
@@ -742,7 +746,7 @@ const CreatePollForm = ({ type, headings }: Props) => {
     },
     [PollType.DELIST_COLLATERAL]: {
       contract: collateralOracle,
-      msg: toBase64({ revoke_collateral_asset: revokeAsset }),
+      msg: toBase64({ revoke_collateral_asset: revokeCollateral }),
     },
     [PollType.DELIST_ASSET]: {
       contract: factory,

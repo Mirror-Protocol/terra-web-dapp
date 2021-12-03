@@ -19,7 +19,7 @@ interface Whitelist {
 }
 
 interface RevokeCollateral {
-  asset_token: string
+  asset: AssetInfo | NativeInfo
 }
 
 interface RevokeAsset {

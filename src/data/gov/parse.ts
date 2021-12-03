@@ -73,8 +73,8 @@ const parsePollQuery = selector({
       }
     }
 
-    const parseRevokeCollateral = ({ asset_token }: RevokeCollateral) => {
-      const symbol = getSymbol(asset_token)
+    const parseRevokeCollateral = ({ asset }: RevokeCollateral) => {
+      const { symbol } = parseAssetInfo(asset)
       return { contents: parseContents({ asset: symbol }) }
     }
 
