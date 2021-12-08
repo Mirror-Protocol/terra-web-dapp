@@ -60,7 +60,9 @@ const protocolHelpersQuery = selector({
     }
 
     const getPriceKey = (key: PriceKey, token: string) =>
-      getIsTokenNative(token)
+      getIsExternal(token)
+        ? key
+        : getIsTokenNative(token)
         ? PriceKey.NATIVE
         : getIsDelisted(token)
         ? PriceKey.END
