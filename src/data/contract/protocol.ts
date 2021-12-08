@@ -78,7 +78,8 @@ const protocolHelpersQuery = selector({
         : BalanceKey.TOKEN
 
     const getIsDelisted = (token: string) =>
-      whitelist[token]?.status === "DELISTED"
+      whitelist[token]?.status === "DELISTED" ||
+      whitelistExternal[token]?.status === "DELISTED"
 
     const getIsPreIPO = (token: string) =>
       whitelist[token]?.status === "PRE_IPO"

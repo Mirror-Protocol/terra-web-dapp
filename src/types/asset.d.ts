@@ -24,6 +24,7 @@ interface ListedItem extends DefaultListedItem {
 interface ListedItemExternal extends DefaultListedItem {
   pair?: string
   icon: string
+  status: ListedItemStatus
 }
 
 type DelistItem = DefaultDelistItem | StockEventItem

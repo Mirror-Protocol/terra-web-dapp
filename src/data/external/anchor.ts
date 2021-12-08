@@ -18,12 +18,14 @@ const mainnet: Protocol = {
       symbol: "aUST",
       token: "terra1hzh9vpxhsk8253se0vv5jj6etdvxu3nv8z07zu",
       icon: "https://whitelist.anchorprotocol.com/logo/aUST.png",
+      status: "LISTED",
     },
     terra14z56l0fp2lsf86zy3hty2z47ezkhnthtr9yq76: {
       symbol: "ANC",
       token: "terra14z56l0fp2lsf86zy3hty2z47ezkhnthtr9yq76",
       pair: "terra1gm5p3ner9x9xpwugn9sp6gvhd0lwrtkyrecdn3",
       icon: "https://whitelist.anchorprotocol.com/logo/ANC.png",
+      status: "LISTED",
     },
   },
 }
@@ -37,12 +39,14 @@ const testnet: Protocol = {
       symbol: "aUST",
       token: "terra1ajt556dpzvjwl0kl5tzku3fc3p3knkg9mkv8jl",
       icon: "https://whitelist.anchorprotocol.com/logo/aUST.png",
+      status: "LISTED",
     },
     terra1747mad58h0w4y589y3sk84r5efqdev9q4r02pc: {
       symbol: "ANC",
       token: "terra1747mad58h0w4y589y3sk84r5efqdev9q4r02pc",
       pair: "terra1wfvczps2865j0awnurk9m04u7wdmd6qv3fdnvz",
       icon: "https://whitelist.anchorprotocol.com/logo/ANC.png",
+      status: "DELISTED",
     },
   },
 }
@@ -56,31 +60,14 @@ const bombay: Protocol = {
       symbol: "aUST",
       token: "terra1ajt556dpzvjwl0kl5tzku3fc3p3knkg9mkv8jl",
       icon: "https://whitelist.anchorprotocol.com/logo/aUST.png",
+      status: "LISTED",
     },
     terra1747mad58h0w4y589y3sk84r5efqdev9q4r02pc: {
       symbol: "ANC",
       token: "terra1747mad58h0w4y589y3sk84r5efqdev9q4r02pc",
       pair: "terra1wfvczps2865j0awnurk9m04u7wdmd6qv3fdnvz",
       icon: "https://whitelist.anchorprotocol.com/logo/ANC.png",
-    },
-  },
-}
-
-const moonshine: Protocol = {
-  contracts: {
-    anchorMarket: "terra1sepfj7s0aeg5967uxnfk4thzlerrsktkpelm5s",
-  },
-  assets: {
-    terra1hzh9vpxhsk8253se0vv5jj6etdvxu3nv8z07zu: {
-      symbol: "aUST",
-      token: "terra1hzh9vpxhsk8253se0vv5jj6etdvxu3nv8z07zu",
-      icon: "https://whitelist.anchorprotocol.com/logo/aUST.png",
-    },
-    terra14z56l0fp2lsf86zy3hty2z47ezkhnthtr9yq76: {
-      symbol: "ANC",
-      token: "terra14z56l0fp2lsf86zy3hty2z47ezkhnthtr9yq76",
-      pair: "terra1gm5p3ner9x9xpwugn9sp6gvhd0lwrtkyrecdn3",
-      icon: "https://whitelist.anchorprotocol.com/logo/ANC.png",
+      status: "LISTED",
     },
   },
 }
@@ -94,8 +81,7 @@ export const anchorProtocolQuery = selector({
   key: "anchorProtocol",
   get: ({ get }) => {
     const networkName = get(networkNameState)
-    const protocol =
-      { mainnet, testnet, bombay, moonshine }[networkName] ?? placeholder
+    const protocol = { mainnet, testnet, bombay }[networkName] ?? placeholder
 
     const getToken = (symbol: string) =>
       Object.values(protocol?.assets ?? {}).find(
