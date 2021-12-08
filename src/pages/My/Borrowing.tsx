@@ -164,17 +164,17 @@ const Borrowing = () => {
           {
             key: "actions",
             dataIndex: "idx",
-            render: (idx) => (
+            render: (idx, { collateralAsset: { delisted } }) => (
               <LinkButton
                 to={{
-                  pathname: getPath(MenuKey.MINT),
+                  pathname: getPath(delisted ? MenuKey.CLOSE : MenuKey.MINT),
                   search: `idx=${idx}`,
-                  hash: MintType.EDIT,
+                  hash: delisted ? MintType.CLOSE : MintType.EDIT,
                 }}
                 size="xs"
                 outline
               >
-                Manage
+                {delisted ? "Close" : "Manage"}
               </LinkButton>
             ),
             align: "right",

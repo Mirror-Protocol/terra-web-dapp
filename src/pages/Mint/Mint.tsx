@@ -6,7 +6,11 @@ import Tab from "../../components/Tab"
 import { MintType } from "../../types/Types"
 import MintForm from "../../forms/MintForm"
 
-const Mint = () => {
+interface Props {
+  tabs?: MintType[]
+}
+
+const Mint = ({ tabs = [MintType.EDIT, MintType.CLOSE] }: Props) => {
   const { hash: type } = useHash<MintType>()
   const { search } = useLocation()
   const idx = new URLSearchParams(search).get("idx") || ""
@@ -17,7 +21,7 @@ const Mint = () => {
   return (
     <Page>
       {!invalid && (
-        <Tab tabs={[MintType.EDIT, MintType.CLOSE]} current={type}>
+        <Tab tabs={tabs} current={type}>
           <MintForm position={parsed} type={type} key={type} />
         </Tab>
       )}
