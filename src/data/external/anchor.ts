@@ -25,7 +25,7 @@ const mainnet: Protocol = {
       token: "terra14z56l0fp2lsf86zy3hty2z47ezkhnthtr9yq76",
       pair: "terra1gm5p3ner9x9xpwugn9sp6gvhd0lwrtkyrecdn3",
       icon: "https://whitelist.anchorprotocol.com/logo/ANC.png",
-      status: "LISTED",
+      status: "DELISTED",
     },
   },
 }
