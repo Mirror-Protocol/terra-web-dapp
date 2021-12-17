@@ -221,7 +221,7 @@ const MintForm = ({ position, type }: Props) => {
     onSelect: onSelect(Key.token1),
     native: ["uusd", "uluna"],
     showExternal: true,
-    validate: (item) => !("status" in item) || item.status !== "PRE_IPO",
+    validate: (item) => item.status !== "PRE_IPO" && item.symbol !== "MIR",
     dim: (token) => isClosed(token),
   })
 

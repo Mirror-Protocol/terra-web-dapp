@@ -61,7 +61,9 @@ const Assets = ({ selected, onSelect, ...props }: Props) => {
   const list: AssetItemProps[] = [
     ...native.map((denom) => nativeDenoms[denom]),
     ...[
-      ...listedAllExternal.filter(() => !!showExternal),
+      ...listedAllExternal.filter(
+        ({ status }) => !!showExternal && status === "LISTED"
+      ),
       ...listedAll.filter(({ token }) =>
         showDelisted
           ? !getIsDelisted(token) || gt(findBalance(token), 0)

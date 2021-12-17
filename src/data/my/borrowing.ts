@@ -20,7 +20,8 @@ export const useMyBorrowing = () => {
       /* collateral */
       const collateral = parseToken(position.collateral)
       const collateralPriceKey = getPriceKey(collateral.token)
-      const collateralDelisted = getIsDelisted(collateral.token)
+      const collateralDelisted =
+        getIsDelisted(collateral.token) || collateral.symbol === "MIR"
       const collateralPrice = findPrice(collateralPriceKey, collateral.token)
       const collateralValue = times(collateral.amount, collateralPrice)
 
