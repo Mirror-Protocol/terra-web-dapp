@@ -246,6 +246,7 @@ const MintForm = ({ position, type }: Props) => {
   const isMarketClosed1 = isClosed(token1)
   const isMarketClosed2 = isClosed(token2)
   const isMarketClosed = isMarketClosed1 || isMarketClosed2
+  const isDeposit = prevCollateral && gt(amount1, prevCollateral.amount)
   const isTryingToWithdrawOnMarketClosed =
     isMarketClosed && prevCollateral && lt(amount1, prevCollateral.amount)
 
@@ -560,6 +561,8 @@ const MintForm = ({ position, type }: Props) => {
     ? ratioMessages
     : close
     ? closeMessages
+    : !isDeposit
+    ? ["Only available during market hours"]
     : undefined
 
   const warnings = [
