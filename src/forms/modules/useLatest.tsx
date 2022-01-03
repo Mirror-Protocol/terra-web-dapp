@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react"
+import { useWallet } from "@terra-money/wallet-provider"
 import { useProtocol } from "../../data/contract/protocol"
 
 type State = "OPEN" | "CLOSED"
 
 const useLatest = () => {
+  const { network } = useWallet()
   const { getSymbol, getIsDelisted } = useProtocol()
   const [closed, setClosed] = useState<Dictionary<State>>({})
   const [error, setError] = useState<Error>()
@@ -11,7 +13,10 @@ const useLatest = () => {
   useEffect(() => {
     const load = async () => {
       try {
-        const url = "https://price.mirror.finance/latest"
+        const url =
+          network.name === "testnet"
+            ? "https://price-staging.mirror.finance/latest"
+            : "https://price.mirror.finance/latest"
         const response = await fetch(url)
         const json: { states: Dictionary<State> } = await response.json()
         setClosed(json.states)
@@ -21,7 +26,7 @@ const useLatest = () => {
     }
 
     load()
-  }, [])
+  }, [network.name])
 
   const isClosed = (token: string) => {
     if (getIsDelisted(token)) return false
