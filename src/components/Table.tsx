@@ -9,7 +9,7 @@ const cx = classNames.bind(styles)
 
 interface Props<T> {
   caption?: ReactNode
-  rowKey: keyof T
+  rowKey: keyof T | ((record: T) => string)
   rows?: (record: T) => Row
   columns: Column<T>[]
   dataSource: T[]
@@ -217,7 +217,11 @@ function Table<T extends DefaultRecordType>(props: Props<T>) {
                   <tr
                     className={cx(row?.background, { clickable: row?.to })}
                     onClick={() => row?.to && push(row.to)}
-                    key={record[rowKey]}
+                    key={
+                      typeof rowKey === "function"
+                        ? rowKey(record)
+                        : record[rowKey]
+                    }
                   >
                     {normalized.map(renderTd)}
                   </tr>

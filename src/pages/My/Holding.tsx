@@ -57,7 +57,7 @@ const Holding = () => {
         },
         {
           key: "price",
-          title: "Terraswap Price",
+          title: "Pool Price",
           render: (value) => <Formatted unit="UST">{value}</Formatted>,
           align: "right",
         },

@@ -2,12 +2,13 @@ import { Link } from "react-router-dom"
 import classNames from "classnames"
 
 import Tooltips from "../../lang/Tooltips"
-import { gt, times } from "../../libs/math"
+import { gt, plus, times } from "../../libs/math"
 import { formatAsset } from "../../libs/parse"
 import { useMyTotal } from "../../data/my/total"
 import { useUusdBalance } from "../../data/native/balance"
 import { useMIRPrice } from "../../data/contract/normalize"
 import { useRewards } from "../../data/my/rewards"
+import { useAstroPendingRewards } from "../../data/external/astroport"
 
 import { getPath, MenuKey } from "../../routes"
 import Card, { CardMain } from "../../components/Card"
@@ -31,12 +32,15 @@ const TotalValue = () => {
   /* Claim */
   const MIRPrice = useMIRPrice()
   const { contents: rewards } = useRewards()
+  const { data: astroPendingRewards } = useAstroPendingRewards()
 
   const claimAll = (
     <CardMain className={styles.footer}>
       <LinkButton
         to={getPath(MenuKey.CLAIMREWARDS)}
-        disabled={!gt(rewards.total, 0)}
+        disabled={
+          !(gt(rewards.total, 0) || gt(astroPendingRewards?.pending ?? 0, 0))
+        }
         size="md"
         block
       >
@@ -124,15 +128,28 @@ const TotalValue = () => {
         }
         footer={claimAll}
       >
-        <p>
-          <Formatted symbol="MIR" big>
-            {rewards.total}
-          </Formatted>
-        </p>
+        <section className={styles.rewards}>
+          <p>
+            <Formatted symbol="MIR" big>
+              {plus(rewards.total, astroPendingRewards?.pending_on_proxy ?? 0)}
+            </Formatted>
+          </p>
 
-        <p className={classNames(styles.muted, "muted")}>
-          <Formatted symbol="uusd">{times(rewards.total, MIRPrice)}</Formatted>
-        </p>
+          <p className={classNames(styles.muted, "muted")}>
+            <Formatted symbol="uusd">
+              {times(rewards.total, MIRPrice)}
+            </Formatted>
+          </p>
+
+          {gt(astroPendingRewards?.pending ?? 0, 0) && (
+            <p className={styles.astro}>
+              +{" "}
+              <Formatted symbol="ASTRO">
+                {astroPendingRewards?.pending}
+              </Formatted>
+            </p>
+          )}
+        </section>
 
         <Summary title="MIR Price" size="xs">
           <Formatted unit="UST">{MIRPrice}</Formatted>

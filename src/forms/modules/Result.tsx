@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import { useQuery } from "react-query"
 import { useRecoilValue, useSetRecoilState } from "recoil"
+import { LocationDescriptor } from "history"
 import { TxResult, UserDenied } from "@terra-money/wallet-provider"
 
 import { TX_POLLING_INTERVAL } from "../../constants"
@@ -15,15 +16,22 @@ import TxInfo from "./TxInfo"
 import { PostError } from "./FormContainer"
 import Broadcasting from "./Broadcasting"
 
+export interface LinkAfterTx {
+  to: LocationDescriptor
+  children: string
+}
+
 interface Props {
   response?: TxResult
   error?: PostError
   parseTx?: ResultParser
   gov?: boolean
+  afterTx?: LinkAfterTx
   onFailure?: () => void
 }
 
-const Result = ({ response, error, parseTx, onFailure, gov }: Props) => {
+const Result = ({ response, error, parseTx, onFailure, ...props }: Props) => {
+  const { gov, afterTx } = props
   const success = !error
   const hash = response?.result.txhash ?? ""
   const raw_log = response?.result.raw_log ?? ""
@@ -88,7 +96,7 @@ const Result = ({ response, error, parseTx, onFailure, gov }: Props) => {
 
     link:
       status === STATUS.SUCCESS
-        ? {
+        ? afterTx ?? {
             to: getPath(!gov ? MenuKey.MY : MenuKey.GOV),
             children: !gov ? MenuKey.MY : MenuKey.GOV,
           }

@@ -45,7 +45,7 @@ export const useMyLimitOrder = () => {
       [TradeType.SELL]: div(askToken.amount, offerToken.amount),
     }[type]
 
-    const terraswapPrice = {
+    const poolPrice = {
       [TradeType.BUY]: findPrice(priceKey, askAsset.token),
       [TradeType.SELL]: findPrice(priceKey, offerAsset.token),
     }[type]
@@ -61,7 +61,7 @@ export const useMyLimitOrder = () => {
       asset,
       uusd,
       limitPrice,
-      terraswapPrice,
+      poolPrice,
       offerValue,
     }
   })

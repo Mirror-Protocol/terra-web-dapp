@@ -41,7 +41,7 @@ const BorrowList = () => {
             },
             {
               key: PriceKey.PAIR,
-              title: "Terraswap Price",
+              title: "Pool Price",
               render: (price) =>
                 gt(price, 0) && <Formatted unit="UST">{price}</Formatted>,
               align: "right",

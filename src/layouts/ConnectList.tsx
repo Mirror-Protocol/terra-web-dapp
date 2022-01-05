@@ -13,26 +13,26 @@ const ConnectList = () => {
   type Button = { label: string; image: ReactNode; onClick: () => void }
   const buttons = ([] as Button[])
     .concat(
-      availableInstallTypes.includes(ConnectType.CHROME_EXTENSION)
+      availableInstallTypes.includes(ConnectType.EXTENSION)
         ? {
             label: "Terra Station Extension",
             image: <Terra {...size} />,
-            onClick: () => install(ConnectType.CHROME_EXTENSION),
+            onClick: () => install(ConnectType.EXTENSION),
           }
         : []
     )
     .concat(
-      availableConnectTypes.includes(ConnectType.CHROME_EXTENSION)
+      availableConnectTypes.includes(ConnectType.EXTENSION)
         ? {
             label: "Terra Station Extension",
             image: <Terra {...size} />,
-            onClick: () => connect(ConnectType.CHROME_EXTENSION),
+            onClick: () => connect(ConnectType.EXTENSION),
           }
-        : availableConnectTypes.includes(ConnectType.CHROME_EXTENSION)
+        : availableConnectTypes.includes(ConnectType.EXTENSION)
         ? {
             label: "Terra Station Extension",
             image: <Terra {...size} />,
-            onClick: () => connect(ConnectType.CHROME_EXTENSION),
+            onClick: () => connect(ConnectType.EXTENSION),
           }
         : []
     )

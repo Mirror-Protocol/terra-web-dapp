@@ -1,6 +1,6 @@
 {
   "Dashboard": {
-    "MIRPrice": "Terraswap price of MIR",
+    "MIRPrice": "Pool price of MIR",
 
     "TVL": "Total value of collateral, liquidity and staked MIR",
     "Liquidity": "Total value of all mAssets and UST in liquidity pools",
@@ -77,7 +77,9 @@
     "LimitOrder": "List of trade orders to be executed at the limit price",
     "LimitPrice": "Price at which the order will be executed",
     "OrderValue": "Value of the limit order",
-    "TotalLockedValue": "Total value of assets locked in unfilled limit orders"
+    "TotalLockedValue": "Total value of assets locked in unfilled limit orders",
+
+    "MigrationRequired": "Terraswap LP for this token is not supported on Mirror Protocol anymore. Withdraw and provide liquidity again in order to receive farming reward"
   },
 
   "Forms": {
@@ -90,7 +92,7 @@
 
   "Trade": {
     "Chart": "Chart displaying 24 hours price movement",
-    "Premium": "Percentage difference between Terraswap and Oracle price",
+    "Premium": "Percentage difference between Pool and Oracle price",
     "Price": "Price is based on the pool ratio. The effective price changes dynamically depending on the trade size.\n\n• Spread: Fee paid due to the difference between market price and estimated price.\n• Commission: Fee charged by the protocol that is automatically deducted from the assets that user receives.",
     "MinimumReceived": "Expected minimum quantity to be received based on the current price, maximum spread, and commission",
     "SlippageTolerance": "Your transaction will revert if the price changes by more than this percentage."
@@ -120,7 +122,7 @@
   "Farm": {
     "LongAPR": "Annualized MIR reward return from providing the asset's liquidity.\nThe APR based on premium is updated once every hour.",
     "ShortAPR": "Annualized MIR reward return from depositing collateral to create short position.\nThe APR based on premium is updated once every hour.",
-    "Premium": "Percentage difference between Terraswap and Oracle price",
+    "Premium": "Percentage difference between Pool and Oracle price",
 
     "Long": "Provide liquidity to receive LP tokens which are staked to earn MIR token rewards",
     "InputAsset": "Quantity of assets to be added to the corresponding asset liquidity pool",

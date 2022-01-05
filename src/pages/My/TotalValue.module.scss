@@ -13,17 +13,26 @@
   }
 }
 
+.rewards {
+  @include mobile {
+    margin-bottom: 40px;
+  }
+
+  @include desktop {
+    margin-bottom: 36px;
+  }
+}
+
+.astro,
 .muted {
   margin-top: 4px;
 
   @include mobile {
     font-size: 12px;
-    margin-bottom: 40px;
   }
 
   @include desktop {
     font-size: 14px;
-    margin-bottom: 36px;
   }
 }
 

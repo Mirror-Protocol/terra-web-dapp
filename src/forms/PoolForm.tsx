@@ -80,6 +80,7 @@ const PoolForm = ({ type }: Props) => {
   const pairPrice = findPrice(priceKey, token)
   const oraclePrice = findPrice(PriceKey.ORACLE, token)
   const price = gt(pairPrice, 0) ? pairPrice : oraclePrice
+  const isMIR = symbol === "MIR"
 
   /* form:focus input on select asset */
   const valueRef = useRef<HTMLInputElement>(null)
@@ -196,7 +197,7 @@ const PoolForm = ({ type }: Props) => {
         {
           title: (
             <TooltipIcon content={Tooltips.Farm.PoolPrice}>
-              {gt(pairPrice, 0) ? "Terraswap" : "Oracle"} Price
+              {gt(pairPrice, 0) ? "Pool Price" : "Oracle Price"}
             </TooltipIcon>
           ),
           content: (
@@ -220,7 +221,8 @@ const PoolForm = ({ type }: Props) => {
     },
     gt(pairPrice, 0) && {
       slippage_tolerance: String(DEFAULT_SLIPPAGE),
-    }
+    },
+    autoStake && isMIR && { auto_stake: true }
   )
 
   const data = {
@@ -229,12 +231,15 @@ const PoolForm = ({ type }: Props) => {
           newContractMsg(token, {
             increase_allowance: {
               amount,
-              spender: autoStake ? contracts["staking"] : pair,
+              spender: autoStake && !isMIR ? contracts["staking"] : pair,
             },
           }),
           newContractMsg(
-            autoStake ? contracts["staking"] : pair,
-            { [autoStake ? "auto_stake" : "provide_liquidity"]: provideMsg },
+            autoStake && !isMIR ? contracts["staking"] : pair,
+            {
+              [autoStake && !isMIR ? "auto_stake" : "provide_liquidity"]:
+                provideMsg,
+            },
             { amount: estimated, denom: "uusd" }
           ),
         ]

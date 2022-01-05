@@ -127,7 +127,7 @@ const FarmList = () => {
             },
             {
               key: PriceKey.PAIR,
-              title: "Terraswap Price",
+              title: "Pool Price",
               render: (value) => <Formatted unit="UST">{value}</Formatted>,
               align: "right",
               desktop: true,

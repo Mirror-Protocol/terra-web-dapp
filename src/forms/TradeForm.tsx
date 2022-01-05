@@ -197,7 +197,7 @@ const TradeForm = ({ type }: { type: TradeType }) => {
       },
       unit: `UST per ${symbol}`,
       help: {
-        title: "Terraswap Price",
+        title: "Pool Price",
         content: format(findPrice(priceKey, token)),
       },
     },

@@ -1,29 +1,33 @@
+import { useQuery } from "react-query"
+import { useLCDClient } from "@terra-money/wallet-provider"
 import { times, floor, gt, plus } from "../../libs/math"
 import { format, formatAsset } from "../../libs/parse"
 import calc from "../../libs/calc"
 import { useProtocol } from "../../data/contract/protocol"
-import { PriceKey } from "../../hooks/contractKeys"
-import { usePairPool } from "../../data/contract/contract"
-import { parsePairPool, useFindPrice } from "../../data/contract/normalize"
+import { useNetwork } from "../../hooks"
+import { calcPairPrice, parsePairPool } from "../../data/contract/normalize"
 
-const priceKey = PriceKey.PAIR
+const useMirrorTerraswapPool = () => {
+  const lcd = useLCDClient()
+  const { getToken, getSymbol } = useProtocol()
+  const { mirrorTerraswap } = useNetwork()
+  const { pair } = mirrorTerraswap
+  const { data: pairs } = useQuery([], () =>
+    lcd.wasm.contractQuery<PairPool>(pair, { pool: {} })
+  )
 
-const usePool = () => {
-  const { getSymbol } = useProtocol()
-  const pairs = usePairPool()
-  const findPrice = useFindPrice()
+  const token = getToken("MIR")
+
+  if (!pairs) return
+  const price = calcPairPrice(pairs)
 
   /**
    * @param amount - Amount to provide(asset)/withdraw(lp)
    * @param token - Token of the asset to provide/withdraw
    */
-  return ({ amount, token }: Asset) => {
-    const pair = findPrice(priceKey, token)
-    const oracle = findPrice(PriceKey.ORACLE, token)
-    const price = gt(pair, 0) ? pair : oracle
-
+  return (amount: string) => {
     /* pair pool */
-    const pairPool = parsePairPool(pairs?.[token])
+    const pairPool = parsePairPool(pairs)
 
     /* estimate uusd */
     const estimated = gt(amount, 0) ? floor(times(amount, price)) : "0"
@@ -43,10 +47,7 @@ const usePool = () => {
     }
 
     const fromLP = calc.fromLP(amount, shares, pairPool.total)
-    const assetValueFromLP = times(
-      findPrice(priceKey, token),
-      fromLP.asset.amount
-    )
+    const assetValueFromLP = times(price, fromLP.asset.amount)
     const valueFromLP = plus(assetValueFromLP, fromLP.uusd.amount)
 
     return {
@@ -69,4 +70,4 @@ const usePool = () => {
   }
 }
 
-export default usePool
+export default useMirrorTerraswapPool

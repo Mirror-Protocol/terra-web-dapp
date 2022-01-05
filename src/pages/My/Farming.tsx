@@ -1,4 +1,5 @@
 import Tooltips from "../../lang/Tooltips"
+import { gt } from "../../libs/math"
 import { formatAsset } from "../../libs/parse"
 import getLpName from "../../libs/getLpName"
 import { useProtocol } from "../../data/contract/protocol"
@@ -17,7 +18,8 @@ import CaptionData from "./CaptionData"
 
 const Farming = () => {
   const { getSymbol } = useProtocol()
-  const { dataSource, totalRewards, totalRewardsValue } = useMyFarming()
+  const { dataSource, totalRewards, totalAstroTokenReward, totalRewardsValue } =
+    useMyFarming()
 
   const dataExists = !!dataSource.length
   const description = dataExists && (
@@ -31,6 +33,9 @@ const Farming = () => {
               <span className="muted">
                 ≈ {formatAsset(totalRewardsValue, "uusd")}
               </span>
+              {gt(totalAstroTokenReward, 0) && (
+                <> + {formatAsset(totalAstroTokenReward, "ASTRO")}</>
+              )}
             </>
           ),
         },
@@ -48,7 +53,7 @@ const Farming = () => {
           description={description}
         />
       }
-      rowKey="token"
+      rowKey={({ token, migrationRequired }) => token + migrationRequired}
       columns={[
         {
           key: "symbol",
@@ -56,12 +61,23 @@ const Farming = () => {
             "Pool Name",
             <TooltipIcon content={Tooltips.My.APR}>APR</TooltipIcon>,
           ],
-          render: (symbol, { delisted, apr }) => [
+          render: (symbol, { migrationRequired, delisted, apr }) => [
             <>
+              {migrationRequired && (
+                <Delisted>
+                  <TooltipIcon content={Tooltips.My.MigrationRequired}>
+                    Migration required
+                  </TooltipIcon>
+                </Delisted>
+              )}
               {delisted && <Delisted />}
               {getLpName(symbol)}
             </>,
-            apr && <Percent>{apr}</Percent>,
+            migrationRequired ? (
+              <Percent>0</Percent>
+            ) : (
+              apr && <Percent>{apr}</Percent>
+            ),
           ],
           bold: true,
         },
@@ -72,42 +88,68 @@ const Farming = () => {
               Withdrawable
             </TooltipIcon>
           ),
-          render: (withdrawable) =>
+          render: (withdrawable, { symbol, staked }) =>
             withdrawable && [
-              <>
+              <div title={formatAsset(staked, getLpName(symbol))}>
                 <Formatted symbol={getSymbol(withdrawable.asset.token)}>
                   {withdrawable.asset.amount}
                 </Formatted>{" "}
                 +{" "}
                 <Formatted symbol="uusd">{withdrawable.uusd.amount}</Formatted>
-              </>,
+              </div>,
               <Formatted symbol="uusd">{withdrawable.value}</Formatted>,
             ],
           align: "right",
         },
         {
-          key: "reward",
+          key: "rewards",
           title: (
             <TooltipIcon content={Tooltips.My.FarmReward}>Reward</TooltipIcon>
           ),
-          render: (value) => <Formatted symbol="MIR">{value}</Formatted>,
+          render: (rewards, { astroTokenReward }) => {
+            const renderReward = (amount: string, symbol: string) => {
+              return (
+                <li key={symbol}>
+                  <Formatted symbol={symbol}>{amount}</Formatted>
+                </li>
+              )
+            }
+
+            return (
+              <ul>
+                {renderReward(rewards, "MIR")}
+                {gt(astroTokenReward, 0) &&
+                  renderReward(astroTokenReward, "ASTRO")}
+              </ul>
+            )
+          },
           align: "right",
         },
         {
           key: "actions",
           dataIndex: "token",
-          render: (token) => {
+          render: (token, { migrationRequired }) => {
             const to = {
               pathname: getPath(MenuKey.STAKE),
               hash: StakeType.UNSTAKE,
             }
+
+            const isMirror = getSymbol(token) === "MIR"
+            const astroport = isMirror && !migrationRequired
+
             return (
               <>
-                <LinkButton to={{ ...to, state: { token } }} size="xs" outline>
-                  Unbond
-                </LinkButton>
+                {!isMirror && (
+                  <LinkButton
+                    to={{ ...to, state: { token, astroport } }}
+                    size="xs"
+                    outline
+                  >
+                    Unbond
+                  </LinkButton>
+                )}
                 <LinkButton
-                  to={{ ...to, state: { token, withdraw: true } }}
+                  to={{ ...to, state: { token, withdraw: true, astroport } }}
                   size="xs"
                   outline
                 >

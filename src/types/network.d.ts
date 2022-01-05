@@ -17,6 +17,14 @@ interface LocalNetworkConfig {
   mantle: string
   /** Contracts */
   shuttle: Record<ShuttleNetwork, string>
+  astro: {
+    token: string
+    generator: string
+  }
+  mirrorTerraswap: {
+    pair: string
+    lpToken: string
+  }
   /** Fixed fee */
   fee: { gasPrice: number; amount: number }
 }

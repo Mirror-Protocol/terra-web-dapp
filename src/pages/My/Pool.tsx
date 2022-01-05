@@ -28,13 +28,20 @@ const Pool = () => {
           description={description}
         />
       }
-      rowKey="token"
+      rowKey={({ token, migrationRequired }) => token + migrationRequired}
       columns={[
         {
           key: "symbol",
           title: "Pool Name",
-          render: (symbol, { delisted }) => (
+          render: (symbol, { migrationRequired, delisted }) => (
             <>
+              {migrationRequired && (
+                <Delisted>
+                  <TooltipIcon content={Tooltips.My.MigrationRequired}>
+                    Migration required
+                  </TooltipIcon>
+                </Delisted>
+              )}
               {delisted && <Delisted />}
               {getLpName(symbol)}
             </>
@@ -72,19 +79,22 @@ const Pool = () => {
         {
           key: "actions",
           dataIndex: "token",
-          render: (token) => (
-            <LinkButton
-              to={{
-                pathname: getPath(MenuKey.STAKE),
-                hash: StakeType.STAKE,
-                state: { token },
-              }}
-              size="xs"
-              outline
-            >
-              {MenuKey.STAKE}
-            </LinkButton>
-          ),
+          render: (token) => {
+            if (getSymbol(token) === "MIR") return null
+            return (
+              <LinkButton
+                to={{
+                  pathname: getPath(MenuKey.STAKE),
+                  hash: StakeType.STAKE,
+                  state: { token },
+                }}
+                size="xs"
+                outline
+              >
+                {MenuKey.STAKE}
+              </LinkButton>
+            )
+          },
           align: "right",
           fixed: "right",
         },

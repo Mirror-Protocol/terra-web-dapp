@@ -2,27 +2,30 @@ import { useLocation } from "react-router-dom"
 import Tooltips from "../lang/Tooltips"
 import { toBase64 } from "../libs/formHelpers"
 import useNewContractMsg from "../libs/useNewContractMsg"
-import { gt, minus, max as findMax, plus } from "../libs/math"
+import { gt, minus, max as findMax } from "../libs/math"
 import { formatAsset, lookup, toAmount } from "../libs/parse"
 import useForm, { Values } from "../libs/useForm"
 import { validate as v, placeholder, step } from "../libs/formHelpers"
 import { renderBalance } from "../libs/formHelpers"
-import getLpName from "../libs/getLpName"
 import { useProtocol } from "../data/contract/protocol"
+import { useAddress, useNetwork } from "../hooks"
 import { StakingKey } from "../hooks/contractKeys"
 import { useGovStaker } from "../data/contract/contract"
 import { useFindBalance, useFindStaking } from "../data/contract/normalize"
 import { useGovStaked } from "../data/contract/normalize"
+import { useAstroLpStakedBalance } from "../data/external/astroport"
 
 import FormGroup from "../components/FormGroup"
 import FormFeedback from "../components/FormFeedback"
 import { TooltipIcon } from "../components/Tooltip"
 import WithPriceChart from "../containers/WithPriceChart"
-import { StakeType } from "../types/Types"
+import { FarmType, StakeType } from "../types/Types"
+import { getPath, MenuKey } from "../routes"
 import useStakeReceipt from "./receipts/useStakeReceipt"
 import usePool from "./modules/usePool"
 import FormContainer from "./modules/FormContainer"
 import FormIcon from "./modules/FormIcon"
+import useMirrorTerraswapPool from "./modules/useMirrorTerraswapPool"
 
 enum Key {
   value = "value",
@@ -36,22 +39,40 @@ interface Props {
   gov?: boolean
 }
 
+interface LocationState {
+  token: string
+  withdraw?: boolean
+  astroport?: boolean
+}
+
 const StakeForm = ({ type, tab, gov, ...props }: Props) => {
   /* context */
-  const { state } = useLocation<{ token: string; withdraw?: boolean }>()
+  const { state } = useLocation<LocationState>()
   const token = props.token ?? state?.token
+
+  const address = useAddress()
   const { contracts, whitelist, getSymbol } = useProtocol()
+  const { astro } = useNetwork()
+
   const { contents: findBalance } = useFindBalance()
   const { contents: findStaking } = useFindStaking()
   const { contents: govStaked } = useGovStaked()
   const { contents: govStaker } = useGovStaker()
+
   const getPool = usePool()
+  const getMirrorTerraswapPool = useMirrorTerraswapPool()
+  const { data: astroLpStakedBalance = "0" } = useAstroLpStakedBalance()
+
+  const isAstroport = state?.astroport
+  const isTerraswapMIR = !gov && getSymbol(token) === "MIR" && !isAstroport
 
   const getBalance = (token: string) =>
     (!gov
       ? {
           [StakeType.STAKE]: findStaking(StakingKey.LPSTAKABLE, token),
-          [StakeType.UNSTAKE]: findStaking(StakingKey.LPSTAKED, token),
+          [StakeType.UNSTAKE]: isAstroport
+            ? astroLpStakedBalance
+            : findStaking(StakingKey.LPSTAKED, token),
         }
       : {
           [StakeType.STAKE]: findBalance(token),
@@ -94,7 +115,11 @@ const StakeForm = ({ type, tab, gov, ...props }: Props) => {
   const symbol = getSymbol(token)
 
   /* estimate */
-  const pool = token ? getPool({ amount, token }) : undefined
+  const pool = token
+    ? isTerraswapMIR
+      ? getMirrorTerraswapPool?.(amount)
+      : getPool({ amount, token })
+    : undefined
   const fromLP = pool?.fromLP
 
   /* render:form */
@@ -124,30 +149,28 @@ const StakeForm = ({ type, tab, gov, ...props }: Props) => {
     value: fromLP?.text,
   }
 
-  /* confirm */
-  const staked = !gov ? findStaking(StakingKey.LPSTAKED, token) : govStaked
-  const operate = { [StakeType.STAKE]: plus, [StakeType.UNSTAKE]: minus }[type]
-  const afterTx = operate(staked, amount)
-
-  const contents = !value
-    ? undefined
-    : gt(staked, 0)
-    ? [
-        {
-          title: "Staked after tx",
-          content: formatAsset(afterTx, !gov ? getLpName(symbol) : "MIR"),
-        },
-      ]
-    : []
-
   /* submit */
   const newContractMsg = useNewContractMsg()
-  const { pair, lpToken } = whitelist[token] ?? {}
+  const { mirrorTerraswap } = useNetwork()
+  const tokenContracts = whitelist[token] ?? {}
+
+  // For MIR
+  // 1. Terraswap: Use contracts of Terraswap pair and lp token
+  // 2. Astroport: Use contract of Astroport generator
+  const pair = isTerraswapMIR ? mirrorTerraswap.pair : tokenContracts.pair
+  const lpToken = isTerraswapMIR
+    ? mirrorTerraswap.lpToken
+    : tokenContracts.lpToken
+
   const assetToken = { asset_token: token }
 
-  const unbondMsg = newContractMsg(contracts["staking"], {
-    unbond: { ...assetToken, amount },
-  })
+  const unbondMsg = isAstroport
+    ? newContractMsg(astro.generator, {
+        withdraw: { account: address, amount, lp_token: lpToken },
+      })
+    : newContractMsg(contracts["staking"], {
+        unbond: { ...assetToken, amount },
+      })
 
   const withdrawMsg = newContractMsg(lpToken, {
     send: { amount, contract: pair, msg: toBase64({ withdraw_liquidity: {} }) },
@@ -194,13 +217,24 @@ const StakeForm = ({ type, tab, gov, ...props }: Props) => {
     !gov && type === StakeType.UNSTAKE && !withdraw ? "Unbond" : undefined
 
   /* result */
+  const linkAfterTx = isTerraswapMIR
+    ? {
+        to: {
+          pathname: getPath(MenuKey.FARM),
+          hash: FarmType.LONG,
+          state: { token },
+        },
+        children: "Stake to Astroport",
+      }
+    : undefined
+
   const parseTx = useStakeReceipt(type, !!gov)
 
-  const container = { attrs, contents, messages, disabled, data, parseTx }
+  const container = { attrs, contents: [], messages, disabled, data, parseTx }
 
   return (
     <WithPriceChart token={token}>
-      <FormContainer {...container} label={label}>
+      <FormContainer {...container} afterTx={linkAfterTx} label={label}>
         <FormGroup {...fields[Key.value]} />
 
         {!gov && type === StakeType.UNSTAKE && withdraw && (

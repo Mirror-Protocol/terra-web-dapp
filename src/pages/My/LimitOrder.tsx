@@ -57,8 +57,8 @@ const LimitOrder = () => {
             align: "left",
           },
           {
-            key: "terraswapPrice",
-            title: "Terraswap Price",
+            key: "poolPrice",
+            title: "Pool Price",
             render: (value) => <Formatted unit="UST">{value}</Formatted>,
             align: "right",
           },

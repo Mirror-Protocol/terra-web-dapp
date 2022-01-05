@@ -29,7 +29,7 @@ import { TooltipIcon } from "../../components/Tooltip"
 import { Content } from "../../components/componentTypes"
 
 import Caution from "./Caution"
-import Result from "./Result"
+import Result, { LinkAfterTx } from "./Result"
 
 interface Props {
   data: Msg[]
@@ -58,6 +58,8 @@ interface Props {
   parseTx?: ResultParser
   /** Gov tx */
   gov?: boolean
+  /** Link after tx */
+  afterTx?: LinkAfterTx
 
   children?: ReactNode
   full?: boolean
@@ -71,7 +73,7 @@ export type PostError =
 
 export const Component = ({ data: msgs, memo, gasAdjust, ...props }: Props) => {
   const { contents, messages, warnings, label, children, full } = props
-  const { attrs, pretax, deduct, parseTx = () => [], gov } = props
+  const { attrs, pretax, deduct, parseTx = () => [], gov, afterTx } = props
 
   /* context */
   const modal = useModal()
@@ -204,6 +206,7 @@ export const Component = ({ data: msgs, memo, gasAdjust, ...props }: Props) => {
           parseTx={parseTx}
           onFailure={reset}
           gov={gov}
+          afterTx={afterTx}
         />
       ) : (
         <form {...attrs} onSubmit={handleSubmit}>
