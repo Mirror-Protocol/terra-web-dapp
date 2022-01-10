@@ -7,7 +7,7 @@ const networks: Record<string, MirrorNetworkInfo> = {
     name: "mainnet",
     chainID: "columbus-5",
     lcd: "https://lcd.terra.dev",
-    contract: "https://whitelist.mirror.finance/columbus.json",
+    contract: "https://whitelist-dev.mirror.finance/columbus.json",
     mantle: "https://mantle.terra.dev/",
     shuttle: {
       ethereum: "terra13yxhrk08qvdf5zdc9ss5mwsg5sf7zva9xrgwgc",
