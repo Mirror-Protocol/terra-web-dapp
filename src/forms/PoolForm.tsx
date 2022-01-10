@@ -262,7 +262,7 @@ const PoolForm = ({ type }: Props) => {
   const parseTx = usePoolReceipt(type)
   const label = autoStake ? "Farm" : "Provide liquidity"
   const container = { attrs, contents, disabled, data, parseTx, label }
-  const tax = { pretax: uusd, deduct: withdraw }
+  const tax = { pretax: uusd, deduct: withdraw, gasAdjust: 1.5 }
 
   const steps = [
     {
