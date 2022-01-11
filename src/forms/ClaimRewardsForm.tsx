@@ -77,7 +77,7 @@ const ClaimRewardsForm = () => {
   /* result */
   const parseTx = useClaimRewardsReceipt()
 
-  const container = { contents, disabled, data, parseTx }
+  const container = { contents, disabled, data, parseTx, gasAdjust: 1.5 }
   const props = { tab: { tabs: ["Claim"], current: "Claim" }, label: "Claim" }
 
   return (
