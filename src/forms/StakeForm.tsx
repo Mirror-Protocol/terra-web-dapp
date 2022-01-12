@@ -230,11 +230,21 @@ const StakeForm = ({ type, tab, gov, ...props }: Props) => {
 
   const parseTx = useStakeReceipt(type, !!gov)
 
-  const container = { attrs, contents: [], messages, disabled, data, parseTx }
+  const container = {
+    attrs,
+    contents: [],
+    messages,
+    disabled,
+    data,
+    parseTx,
+    gasAdjust: 1.5,
+    label,
+    afterTx: linkAfterTx,
+  }
 
   return (
     <WithPriceChart token={token}>
-      <FormContainer {...container} afterTx={linkAfterTx} label={label}>
+      <FormContainer {...container}>
         <FormGroup {...fields[Key.value]} />
 
         {!gov && type === StakeType.UNSTAKE && withdraw && (
