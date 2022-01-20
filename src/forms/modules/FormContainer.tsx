@@ -9,12 +9,11 @@ import { TxFailed, TxUnspecifiedError } from "@terra-money/wallet-provider"
 
 import MESSAGE from "../../lang/MESSAGE.json"
 import Tooltips from "../../lang/Tooltips"
-import { gt, plus, sum } from "../../libs/math"
+import { gt } from "../../libs/math"
 import { capitalize } from "../../libs/utils"
 import useHash from "../../libs/useHash"
 import useLocalStorage from "../../libs/useLocalStorage"
 import { useAddress } from "../../hooks"
-import useTax from "../../hooks/useTax"
 import useFee from "../../hooks/useFee"
 import { useUusdBalance } from "../../data/native/balance"
 
@@ -38,10 +37,6 @@ interface Props {
 
   /** Form information */
   contents?: Content[]
-  /** uusd amount for tax calculation */
-  pretax?: string
-  /** Exclude tax from the contract */
-  deduct?: boolean
   /** Form feedback */
   messages?: ReactNode[]
   warnings?: ReactNode[]
@@ -73,7 +68,7 @@ export type PostError =
 
 export const Component = ({ data: msgs, memo, gasAdjust, ...props }: Props) => {
   const { contents, messages, warnings, label, children, full } = props
-  const { attrs, pretax, deduct, parseTx = () => [], gov, afterTx } = props
+  const { attrs, parseTx = () => [], gov, afterTx } = props
 
   /* context */
   const modal = useModal()
@@ -88,16 +83,11 @@ export const Component = ({ data: msgs, memo, gasAdjust, ...props }: Props) => {
   const uusd = useUusdBalance()
   const address = useAddress()
 
-  /* tax */
+  /* fee */
   const fee = useFee(msgs?.length, gasAdjust)
-  const { calcTax } = useTax()
-  const tax = pretax ? calcTax(pretax) : "0"
-  const uusdAmount = !deduct
-    ? sum([pretax ?? "0", tax, fee.amount])
-    : fee.amount
 
   const invalidMessages =
-    address && !gt(uusd, uusdAmount) ? ["Not enough UST"] : undefined
+    address && !gt(uusd, fee.amount) ? ["Not enough UST"] : undefined
 
   /* confirm */
   const [confirming, setConfirming] = useState(false)
@@ -119,7 +109,7 @@ export const Component = ({ data: msgs, memo, gasAdjust, ...props }: Props) => {
         msgs,
         memo,
         gasPrices: `${gasPrice}uusd`,
-        fee: new Fee(gas, { uusd: plus(amount, !deduct ? tax : undefined) }),
+        fee: new Fee(gas, { uusd: amount }),
         purgeQueue: true,
       }
 
@@ -164,7 +154,7 @@ export const Component = ({ data: msgs, memo, gasAdjust, ...props }: Props) => {
 
     const txFee = (
       <Formatted symbol="uusd" dp={6}>
-        {plus(!deduct ? tax : 0, fee.amount)}
+        {String(fee.amount)}
       </Formatted>
     )
 

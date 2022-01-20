@@ -28,7 +28,6 @@ export default (type: MintType) => (logs: TxLog[]) => {
   const deposit = splitTokenText(fc("deposit")("deposit_amount"))
   const withdraw = splitTokenText(fc("withdraw")("withdraw_amount"))
   const burn = splitTokenText(fc("burn")("burn_amount"))
-  const tax = splitTokenText(fc("withdraw")("tax_amount"))
   const protocolFee = splitTokenText(fc("burn")("protocol_fee"))
 
   const getRatio = () => {
@@ -68,7 +67,6 @@ export default (type: MintType) => (logs: TxLog[]) => {
     { title: "Burned Asset", content: renderAsset(burn) },
     { title: "Withdrawn Collateral", content: renderAsset(withdraw) },
     { title: "Deposited Collateral", content: renderAsset(deposit) },
-    { title: "Tax", content: renderAsset(tax) },
     { title: "Protocol Fee", content: renderAsset(protocolFee) },
   ]
 }

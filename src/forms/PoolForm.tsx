@@ -99,11 +99,6 @@ const PoolForm = ({ type }: Props) => {
   const fromLP = pool?.fromLP
   const estimated = pool?.toLP.estimated
 
-  const uusd = {
-    [PoolType.PROVIDE]: estimated,
-    [PoolType.WITHDRAW]: fromLP?.uusd.amount,
-  }[type]
-
   /* render:form */
   const config = {
     token,
@@ -262,7 +257,6 @@ const PoolForm = ({ type }: Props) => {
   const parseTx = usePoolReceipt(type)
   const label = autoStake ? "Farm" : "Provide liquidity"
   const container = { attrs, contents, disabled, data, parseTx, label }
-  const tax = { pretax: uusd, deduct: withdraw, gasAdjust: 1.5 }
 
   const steps = [
     {
@@ -286,13 +280,13 @@ const PoolForm = ({ type }: Props) => {
   return (
     <WithPriceChart token={token}>
       {provide ? (
-        <FormContainer {...container} {...tax} full>
+        <FormContainer {...container} gasAdjust={1.5} full>
           {steps.map((step) => (
             <Step {...step} key={step.index} />
           ))}
         </FormContainer>
       ) : (
-        <FormContainer {...container} {...tax}>
+        <FormContainer {...container} gasAdjust={1.5}>
           <FormGroup {...fields[Key.value]} />
           {icons[type]}
           <FormGroup {...fields["estimated"]} />

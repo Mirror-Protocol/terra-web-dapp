@@ -68,7 +68,6 @@ const useParseTx = ({ type, data, token }: Tx) => {
   const mint = splitTokenText(data.mintAmount)
   const burn = splitTokenText(data.burnAmount)
   const { amount: unlocked } = splitTokenText(data.unlockedAmount)
-  const { amount: tax } = splitTokenText(data.taxAmount)
 
   /* pool */
   const assets = parseTokenText(data.assets)
@@ -158,10 +157,7 @@ const useParseTx = ({ type, data, token }: Tx) => {
       "from position",
       positionIdx,
     ],
-    WITHDRAW_UNLOCKED_UST: [
-      "Claimed",
-      formatAsset(minus(unlocked, tax), "uusd"),
-    ],
+    WITHDRAW_UNLOCKED_UST: ["Claimed", formatAsset(unlocked, "uusd")],
     MINT: ["Borrowed", formatToken(mint), "to position", positionIdx],
     BURN: ["Burned", formatToken(burn), "from position", positionIdx],
     AUCTION: [

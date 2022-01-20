@@ -23,18 +23,6 @@ export const ORACLE_DENOMS_EXCHANGE_RATES = gql`
   }
 `
 
-export const TAX = gql`
-  query tax {
-    TreasuryTaxRate {
-      Result
-    }
-
-    TreasuryTaxCapDenom(Denom: "uusd") {
-      Result
-    }
-  }
-`
-
 export const WASM = gql`
   query WasmContractsContractAddressStore($contract: String, $msg: String) {
     WasmContractsContractAddressStore(

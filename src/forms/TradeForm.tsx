@@ -17,7 +17,7 @@ import { renderBalance } from "../libs/formHelpers"
 import calc from "../libs/calc"
 import { useProtocol } from "../data/contract/protocol"
 import { PriceKey, BalanceKey } from "../hooks/contractKeys"
-import useTax from "../hooks/useTax"
+import useGetMax from "../hooks/useGetMax"
 import { useFindBalance } from "../data/contract/normalize"
 import { useFindPrice } from "../data/contract/normalize"
 import { slippageQuery } from "../data/tx/slippage"
@@ -104,7 +104,6 @@ const TradeForm = ({ type }: { type: TradeType }) => {
   const symbol = getSymbol(token)
   const symbol1 = getSymbol(token1)
   const symbol2 = getSymbol(token2)
-  const uusd = { [TradeType.BUY]: amount1, [TradeType.SELL]: amount2 }[type]
 
   /* form:focus input on select asset */
   const value1Ref = useRef<HTMLInputElement>(null)
@@ -180,7 +179,7 @@ const TradeForm = ({ type }: { type: TradeType }) => {
   const select = useSelectAsset(config)
   const delisted = whitelist[token1]?.["status"] === "DELISTED"
 
-  const { getMax } = useTax()
+  const getMax = useGetMax()
   const max = {
     [TradeType.BUY]: lookup(getMax(balance), "uusd"),
     [TradeType.SELL]: lookup(balance, symbol),
@@ -375,7 +374,6 @@ const TradeForm = ({ type }: { type: TradeType }) => {
   const parseTx = isLimitOrder ? parseLimitOrder : parseTrade
 
   const container = { attrs, contents, data, disabled, messages, parseTx }
-  const tax = { pretax: uusd, deduct: type === TradeType.SELL }
 
   return (
     <WithPriceChart token={token}>
@@ -383,7 +381,7 @@ const TradeForm = ({ type }: { type: TradeType }) => {
         <DelistModal type={delist[token].type} tokens={[token]} key={token} />
       )}
 
-      <FormContainer {...container} {...tax}>
+      <FormContainer {...container}>
         <div className={styles.header}>
           <ToggleLimitOrder state={limitOrderState} />
           {!isLimitOrder && <SetSlippageTolerance />}

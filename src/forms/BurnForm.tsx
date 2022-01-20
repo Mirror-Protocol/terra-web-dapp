@@ -87,12 +87,11 @@ const BurnForm = () => {
 
   /* result */
   const parseTx = useBurnReceipt()
-  const tax = { pretax: uusd, deduct: true }
   const container = { contents, data, parseTx, label: "Burn" }
 
   return (
     <Container sm>
-      <FormContainer {...container} {...tax} />
+      <FormContainer {...container} />
     </Container>
   )
 }

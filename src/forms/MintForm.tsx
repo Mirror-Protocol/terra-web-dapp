@@ -20,7 +20,7 @@ import calc from "../libs/calc"
 import { useProtocol } from "../data/contract/protocol"
 import { slippageQuery } from "../data/tx/slippage"
 import { PriceKey } from "../hooks/contractKeys"
-import useTax from "../hooks/useTax"
+import useGetMax from "../hooks/useGetMax"
 import { useFindBalance } from "../data/contract/normalize"
 import { useFindPrice } from "../data/contract/normalize"
 import { useGetMinRatio } from "../data/contract/collateral"
@@ -75,7 +75,7 @@ const MintForm = ({ position, type }: Props) => {
   const findPrice = useFindPrice()
   const { contents: findBalance, ...findBalanceStore } = useFindBalance()
 
-  const { getMax: getMaxAmount } = useTax()
+  const getMaxAmount = useGetMax()
   const { isClosed } = useLatest()
 
   const getSafeRatio = (ratio: string) =>
@@ -589,7 +589,6 @@ const MintForm = ({ position, type }: Props) => {
     label,
     disabled,
     data,
-    pretax: token1 === "uusd" ? (edit ? diffCollateral : amount1) : "0",
     deduct: close || (edit && lt(diffCollateral, 0)),
     gasAdjust: 1.5,
     parseTx,
