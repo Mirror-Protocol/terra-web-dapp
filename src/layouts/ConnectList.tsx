@@ -10,7 +10,12 @@ const ConnectList = () => {
   const { availableConnectTypes, availableInstallTypes, connect, install } =
     useWallet()
 
+  // Terra.js injects the compatible wallet extensions into the window object.
+  // We can use this to detect and display any terra extensions in the scope.
+  const walletExtensions = window.terraWallets ?? []
+
   type Button = { label: string; image: ReactNode; onClick: () => void }
+
   const buttons = ([] as Button[])
     .concat(
       availableInstallTypes.includes(ConnectType.EXTENSION)
@@ -22,19 +27,11 @@ const ConnectList = () => {
         : []
     )
     .concat(
-      availableConnectTypes.includes(ConnectType.EXTENSION)
-        ? {
-            label: "Terra Station Extension",
-            image: <Terra {...size} />,
-            onClick: () => connect(ConnectType.EXTENSION),
-          }
-        : availableConnectTypes.includes(ConnectType.EXTENSION)
-        ? {
-            label: "Terra Station Extension",
-            image: <Terra {...size} />,
-            onClick: () => connect(ConnectType.EXTENSION),
-          }
-        : []
+      walletExtensions.map((wallet) => ({
+        label: wallet.name,
+        image: <img src={wallet.icon} {...size} alt={wallet.name} />,
+        onClick: () => connect(ConnectType.EXTENSION, wallet.identifier),
+      }))
     )
     .concat(
       availableConnectTypes.includes(ConnectType.WALLETCONNECT)
