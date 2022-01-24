@@ -1,13 +1,12 @@
 import { ConnectType, useWallet } from "@terra-money/wallet-provider"
 import { ReactNode } from "react"
 import { ReactComponent as Terra } from "../styles/images/Terra.svg"
-import WalletConnect from "../styles/images/WalletConnect.png"
 import styles from "./ConnectList.module.scss"
 
 const size = { width: 24, height: 24 }
 
 const ConnectList = () => {
-  const { availableConnectTypes, availableInstallTypes, connect, install } =
+  const { availableConnections, availableInstallTypes, connect, install } =
     useWallet()
 
   type Button = { label: string; image: ReactNode; onClick: () => void }
@@ -22,28 +21,11 @@ const ConnectList = () => {
         : []
     )
     .concat(
-      availableConnectTypes.includes(ConnectType.EXTENSION)
-        ? {
-            label: "Terra Station Extension",
-            image: <Terra {...size} />,
-            onClick: () => connect(ConnectType.EXTENSION),
-          }
-        : availableConnectTypes.includes(ConnectType.EXTENSION)
-        ? {
-            label: "Terra Station Extension",
-            image: <Terra {...size} />,
-            onClick: () => connect(ConnectType.EXTENSION),
-          }
-        : []
-    )
-    .concat(
-      availableConnectTypes.includes(ConnectType.WALLETCONNECT)
-        ? {
-            label: "Terra Station Mobile",
-            image: <img src={WalletConnect} {...size} alt="WalletConnect" />,
-            onClick: () => connect(ConnectType.WALLETCONNECT),
-          }
-        : []
+      availableConnections?.map(({ type, identifier, name, icon }) => ({
+        image: <img src={icon} alt="" {...size} />,
+        label: name,
+        onClick: () => connect(type, identifier),
+      }))
     )
 
   return (
