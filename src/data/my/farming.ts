@@ -1,4 +1,4 @@
-import { gt, sum, times } from "../../libs/math"
+import { gt, plus, sum, times } from "../../libs/math"
 import { PriceKey, StakingKey } from "../../hooks/contractKeys"
 import { useProtocol } from "../contract/protocol"
 import { useFindPrice, useFindStaking } from "../contract/normalize"
@@ -74,7 +74,7 @@ export const useMyFarming = () => {
     : dataSourceListed
 
   const price = findPrice(priceKey, mirrorToken)
-  const totalRewards = rewards.long
+  const totalRewards = plus(rewards.long, astroPendingRewards?.pending_on_proxy)
   const totalAstroTokenReward = astroTokenRewardAmount
 
   const totalRewardsValue = times(rewards.long, price)
