@@ -590,7 +590,7 @@ const MintForm = ({ position, type }: Props) => {
     disabled,
     data,
     deduct: close || (edit && lt(diffCollateral, 0)),
-    gasAdjust: 1.5,
+    gasAdjust: 2,
     parseTx,
   }
 
