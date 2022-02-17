@@ -4,6 +4,13 @@ import { getContractQueryQuery } from "../utils/query"
 import { protocolQuery } from "../contract/protocol"
 import { addressState } from "../wallet"
 
+const mainnet: ListedItemExternal = {
+  symbol: "LunaX",
+  token: "terra17y9qkl8dfkeg4py7n0g5407emqnemc3yqk5rup",
+  icon: "https://raw.githubusercontent.com/stader-labs/assets/main/terra/LunaX_1.png",
+  status: "LISTED",
+}
+
 const testnet: ListedItemExternal = {
   symbol: "LunaX",
   token: "terra1v0ypm2yc96alhn634pnwt4q4px482ukfqk02hx",
@@ -15,7 +22,7 @@ export const assetQuery = selector({
   key: "LunaX.asset",
   get: ({ get }) => {
     const networkName = get(networkNameState)
-    return { testnet }[networkName]
+    return { mainnet, testnet }[networkName]
   },
 })
 
