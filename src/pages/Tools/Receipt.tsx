@@ -17,7 +17,6 @@ import useMintReceipt from "../../forms/receipts/useMintReceipt"
 import usePoolReceipt from "../../forms/receipts/usePoolReceipt"
 import useStakeReceipt from "../../forms/receipts/useStakeReceipt"
 import useGovReceipt from "../../forms/receipts/useGovReceipt"
-import useClaimRewardsReceipt from "../../forms/receipts/useClaimRewardsReceipt"
 import useClaimUSTReceipt from "../../forms/receipts/useClaimUSTReceipt"
 import useBurnReceipt from "../../forms/receipts/useBurnReceipt"
 import useSendReceipt from "../../forms/receipts/useSendReceipt"
@@ -40,7 +39,6 @@ const Receipt = () => {
   const parseStakeGOVSTAKE = useStakeReceipt(StakeType.STAKE, true)
   const parseStakeGOVUNSTAKE = useStakeReceipt(StakeType.UNSTAKE, true)
   const parseGov = useGovReceipt()
-  const parseClaimRewards = useClaimRewardsReceipt()
   const parseClaimUST = useClaimUSTReceipt()
   const parseBurn = useBurnReceipt()
   const parseSend = useSendReceipt()
@@ -62,7 +60,6 @@ const Receipt = () => {
     "Stake → GOVSTAKE": parseStakeGOVSTAKE,
     "Stake → GOVUNSTAKE": parseStakeGOVUNSTAKE,
     "Gov ": parseGov,
-    "Claim → Rewards": parseClaimRewards,
     "Claim → UST": parseClaimUST,
     "Burn ": parseBurn,
     "Send ": parseSend,

@@ -7,7 +7,6 @@ import { useAstroPendingRewards } from "../data/external/astroport"
 import { useAddress, useNetwork } from "../hooks"
 import Formatted from "../components/Formatted"
 import Container from "../components/Container"
-import useClaimRewardsReceipt from "./receipts/useClaimRewardsReceipt"
 import FormContainer from "./modules/FormContainer"
 
 const ClaimRewardsForm = () => {
@@ -75,9 +74,7 @@ const ClaimRewardsForm = () => {
   )
 
   /* result */
-  const parseTx = useClaimRewardsReceipt()
-
-  const container = { contents, disabled, data, parseTx, gasAdjust: 1.5 }
+  const container = { contents, disabled, data, gasAdjust: 1.5 }
   const props = { tab: { tabs: ["Claim"], current: "Claim" }, label: "Claim" }
 
   return (

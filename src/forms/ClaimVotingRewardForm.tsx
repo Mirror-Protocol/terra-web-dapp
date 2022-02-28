@@ -8,7 +8,6 @@ import { calcVotingRewards, govAddressVoterQuery } from "../data/contract/gov"
 import { usePoll } from "../data/gov/poll"
 import Formatted from "../components/Formatted"
 import Container from "../components/Container"
-import useClaimRewardsReceipt from "./receipts/useClaimRewardsReceipt"
 import FormContainer from "./modules/FormContainer"
 
 const ClaimVotingRewardForm = () => {
@@ -46,9 +45,7 @@ const ClaimVotingRewardForm = () => {
   const disabled = !gt(claiming, 0)
 
   /* result */
-  const parseTx = useClaimRewardsReceipt()
-
-  const container = { contents, disabled, data, parseTx }
+  const container = { contents, disabled, data }
   const props = { tab: { tabs: ["Claim"], current: "Claim" }, label: "Claim" }
 
   return (
