@@ -30,7 +30,13 @@
 }
 
 .type {
+  @include flex();
+  flex-direction: column;
   text-transform: capitalize;
+}
+
+.view {
+  color: $red;
 }
 
 .wrapper > :first-child:not(:only-child) {

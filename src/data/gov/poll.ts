@@ -10,6 +10,8 @@ export interface PollData {
   status: PollStatus
   creator: string
 
+  admin_action?: object
+
   deposit_amount: string
 
   yes_votes?: string

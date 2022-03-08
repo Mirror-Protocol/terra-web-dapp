@@ -11,7 +11,7 @@ interface Props extends Poll {
 }
 
 const PollHeader = ({ titleClassName, ...props }: Props) => {
-  const { id, type, title, status, end_time } = props
+  const { id, type, title, status, end_time, admin_action } = props
 
   const icons: Record<PollStatus, IconNames> = {
     [PollStatus.InProgress]: "PollSolid",
@@ -20,11 +20,15 @@ const PollHeader = ({ titleClassName, ...props }: Props) => {
     [PollStatus.Executed]: "VerifiedSolid",
   }
 
+  const viewOnly = <span className={styles.view}>VIEW ONLY</span>
+
   return (
     <header className={styles.header}>
       <section className={styles.meta}>
         <span className={styles.id}>ID: {id}</span>
-        <span className={styles.type}>{type}</span>
+        <span className={styles.type}>
+          {type} {admin_action && viewOnly}
+        </span>
       </section>
 
       <section
