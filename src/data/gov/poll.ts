@@ -6,13 +6,13 @@ import { useParsePoll } from "./parse"
 
 type Migrations = [[string, number, string]]
 
-interface ExecuteMigrations {
+export interface ExecuteMigrations {
   execute_migrations: {
     migrations: Migrations
   }
 }
 
-interface AuthorizeClaim {
+export interface AuthorizeClaim {
   authorize_claim: {
     authorized_addr: string
   }

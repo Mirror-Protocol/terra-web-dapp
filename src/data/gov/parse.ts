@@ -6,14 +6,18 @@ import { fromBase64 } from "../../libs/formHelpers"
 import { protocolQuery } from "../contract/protocol"
 import { Content } from "../../components/componentTypes"
 import { PollType } from "../../pages/Poll/CreatePoll"
-import { Poll, PollData } from "./poll"
+import { AuthorizeClaim, ExecuteMigrations, Poll, PollData } from "./poll"
 
 const parsePollQuery = selector({
   key: "parsePoll",
   get: ({ get }) => {
     const { getSymbol, parseAssetInfo } = get(protocolQuery)
 
-    const parseParams = (decoded: DecodedExecuteMsg, id: number) => {
+    const parseParams = (
+      decoded: DecodedExecuteMsg,
+      id: number,
+      adminAction?: ExecuteMigrations | AuthorizeClaim
+    ) => {
       const type =
         "whitelist" in decoded
           ? PollType.WHITELIST
@@ -45,7 +49,7 @@ const parsePollQuery = selector({
           : "update_weight" in decoded
           ? parseUpdateWeight(decoded.update_weight)
           : "update_config" in decoded
-          ? parseUpdateConfig(decoded.update_config)
+          ? parseUpdateConfig(decoded.update_config, adminAction)
           : "update_collateral_multiplier" in decoded
           ? parseUpdateCollateralMultiplier(
               decoded.update_collateral_multiplier
@@ -102,10 +106,18 @@ const parsePollQuery = selector({
       }),
     })
 
-    const parseUpdateConfig = (config: Partial<GovConfig>) => {
-      const { voting_period, effective_delay } = config
-      const { quorum, threshold } = config
-      const { proposal_deposit, voter_weight, owner } = config
+    const parseUpdateConfig = (
+      config: Partial<GovConfig>,
+      adminAction?: ExecuteMigrations | AuthorizeClaim
+    ) => {
+      const { effective_delay } = config
+      const { voter_weight, owner } = config
+      const poll_config = getConfig(config, adminAction)
+
+      const voting_period = poll_config?.voting_period
+      const proposal_deposit = poll_config?.proposal_deposit
+      const quorum = poll_config?.quorum
+      const threshold = poll_config?.threshold
 
       return {
         contents: [
@@ -146,7 +158,7 @@ const parsePollQuery = selector({
       try {
         if (poll.execute_data) {
           const decoded = fromBase64<DecodedExecuteMsg>(poll.execute_data.msg)
-          const parsed = parseParams(decoded, poll.id)
+          const parsed = parseParams(decoded, poll.id, poll.admin_action)
           return { ...poll, ...parsed }
         } else {
           return { ...poll, type: PollType.TEXT }
@@ -180,3 +192,24 @@ const parseContents = (
       }, [])
 
 export const getTitle = (title: string) => title.replace(/_/g, " ")
+
+export const getConfig = (
+  config: Partial<GovConfig> | GovConfig,
+  adminAction?: ExecuteMigrations | AuthorizeClaim
+) => {
+  if (!config) return
+
+  const { default_poll_config } = config
+  const { auth_admin_poll_config } = config
+  const { migration_poll_config } = config
+
+  const poll_config = adminAction
+    ? "execute_migrations" in adminAction
+      ? migration_poll_config
+      : "authorize_claim" in adminAction
+      ? auth_admin_poll_config
+      : default_poll_config
+    : default_poll_config
+
+  return poll_config
+}

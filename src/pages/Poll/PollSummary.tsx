@@ -64,7 +64,7 @@ const PollSummary = (props: Poll) => {
               }
               className={styles.modal}
             >
-              <div className={styles.rawlog}>
+              <div className={styles.message}>
                 <Pre>{admin_action}</Pre>
               </div>
             </Card>

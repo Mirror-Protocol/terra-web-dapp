@@ -71,12 +71,30 @@ interface Voter {
 
 /* config */
 interface GovConfig {
-  owner: string
-  voting_period: number
+  admin_manager: string
+  auth_admin_poll_config: {
+    proposal_deposit: string
+    quorum: string
+    threshold: string
+    voting_period: number
+  }
+  default_poll_config: {
+    proposal_deposit: string
+    quorum: string
+    threshold: string
+    voting_period: number
+  }
   effective_delay: number
-  quorum: string
-  threshold: string
-  proposal_deposit: string
+  migration_poll_config: {
+    proposal_deposit: string
+    quorum: string
+    threshold: string
+    voting_period: number
+  }
+  mirror_token: string
+  owner: string
+  poll_gas_limit: number
+  snapshot_period: number
   voter_weight: string
 }
 

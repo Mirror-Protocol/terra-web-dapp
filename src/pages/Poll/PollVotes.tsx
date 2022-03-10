@@ -4,9 +4,10 @@ import { formatAsset } from "../../libs/parse"
 import { percent } from "../../libs/num"
 import { useGovConfig } from "../../data/gov/config"
 import { useGovState } from "../../data/gov/state"
-import { Poll } from "../../data/gov/poll"
+import { AuthorizeClaim, ExecuteMigrations, Poll } from "../../data/gov/poll"
 import Progress from "../../components/Progress"
 import styles from "./PollVotes.module.scss"
+import { getConfig } from "../../data/gov/parse"
 
 interface Item {
   label: string
@@ -38,8 +39,13 @@ interface Props extends Poll {
 }
 
 const PollVotes = ({ lg, ...props }: Props) => {
-  const { yes_votes, no_votes, abstain_votes, total_balance_at_end_poll } =
-    props
+  const {
+    yes_votes,
+    no_votes,
+    abstain_votes,
+    total_balance_at_end_poll,
+    admin_action,
+  } = props
   const state = useGovState()
   const config = useGovConfig()
 
@@ -53,7 +59,8 @@ const PollVotes = ({ lg, ...props }: Props) => {
     total: total_balance_at_end_poll ? safeTotal : "0",
   }
 
-  const parsed = config && state && parseVotes(votes, config, state)
+  const parsed =
+    config && state && parseVotes(votes, config, state, admin_action)
 
   return !parsed ? null : (
     <>
@@ -68,16 +75,19 @@ export default PollVotes
 /* helpers */
 export const parseVotes = (
   votes: { yes: string; no: string; abstain: string; total: string },
-  { quorum, ...config }: GovConfig,
-  { total_share }: GovState
+  { ...config }: GovConfig,
+  { total_share }: GovState,
+  admin_action?: ExecuteMigrations | AuthorizeClaim
 ) => {
   const { total } = votes
   const yes = div(votes["yes"], gt(total, 0) ? total : total_share)
   const no = div(votes["no"], gt(total, 0) ? total : total_share)
   const abstain = div(votes["abstain"], gt(total, 0) ? total : total_share)
   const voted = sum([yes, no, abstain])
-  const threshold = times(config.threshold, voted)
+  const pollConfig = getConfig(config, admin_action)
 
+  const quorum = pollConfig?.quorum || "0"
+  const threshold = times(pollConfig?.threshold, voted)
   return {
     voted,
     quorum,

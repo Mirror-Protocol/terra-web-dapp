@@ -334,7 +334,7 @@ const CreatePollForm = ({ type, headings }: Props) => {
   const { effectiveDelay, proposalDeposit } = values
   const { voterWeight, multiplier, recipient, amount } = values
 
-  const deposit = config?.proposal_deposit ?? "0"
+  const deposit = config?.default_poll_config.proposal_deposit ?? "0"
 
   /* render:form */
   const isCollateral =
@@ -384,11 +384,12 @@ const CreatePollForm = ({ type, headings }: Props) => {
 
   const configPlaceholders = {
     [Key.owner]: config?.owner ?? "",
-    [Key.quorum]: times(config?.quorum, 100),
-    [Key.threshold]: times(config?.threshold, 100),
-    [Key.votingPeriod]: String(config?.voting_period) ?? "",
+    [Key.quorum]: times(config?.default_poll_config.quorum, 100),
+    [Key.threshold]: times(config?.default_poll_config.threshold, 100),
+    [Key.votingPeriod]: String(config?.default_poll_config.voting_period) ?? "",
     [Key.effectiveDelay]: String(config?.effective_delay) ?? "",
-    [Key.proposalDeposit]: lookup(config?.proposal_deposit, "MIR") ?? "",
+    [Key.proposalDeposit]:
+      lookup(config?.default_poll_config.proposal_deposit, "MIR") ?? "",
     [Key.voterWeight]: config?.voter_weight ?? "",
   }
 
