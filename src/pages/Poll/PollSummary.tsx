@@ -3,10 +3,10 @@ import { Poll } from "../../data/gov/poll"
 import Dl from "../../components/Dl"
 import PreLine from "../../components/PreLine"
 import ExtLink from "../../components/ExtLink"
-import Modal, { useModal } from "../../containers/Modal"
 import Button from "../../components/Button"
 import Pre from "../../components/Pre"
 import Card from "../../components/Card"
+import Modal, { useModal } from "../../containers/Modal"
 import styles from "./PollSummary.module.scss"
 
 const PollSummary = (props: Poll) => {
@@ -41,11 +41,7 @@ const PollSummary = (props: Poll) => {
               title="Raw Message"
               center
               footer={
-                <Button
-                  size="xs"
-                  onClick={modal.close}
-                  className={styles.close}
-                >
+                <Button size="xs" onClick={modal.close}>
                   Hide
                 </Button>
               }
