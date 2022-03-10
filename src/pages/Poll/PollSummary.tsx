@@ -13,6 +13,22 @@ const PollSummary = (props: Poll) => {
   const { description, link, admin_action, contents = [] } = props
   const modal = useModal()
 
+  const content = admin_action
+    ? "authorize_claim" in admin_action
+      ? [
+          {
+            title: "Address to authorize admin keys to",
+            content: admin_action.authorize_claim.authorized_addr,
+          },
+        ]
+      : "execute_migrations" in admin_action
+      ? admin_action.execute_migrations.migrations.map(([address]) => ({
+          title: "Contract",
+          content: address,
+        }))
+      : []
+    : []
+
   return (
     <section className={styles.wrapper}>
       <Dl
@@ -25,6 +41,7 @@ const PollSummary = (props: Poll) => {
             title: "Link",
             content: <ExtLink href={link}>{link}</ExtLink>,
           }),
+          ...content,
           ...contents,
         ]}
         type="vertical"

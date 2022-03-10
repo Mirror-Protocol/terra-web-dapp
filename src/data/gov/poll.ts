@@ -4,13 +4,27 @@ import { protocolQuery } from "../contract/protocol"
 import { getContractQueryQuery } from "../utils/query"
 import { useParsePoll } from "./parse"
 
+type Migrations = [[string, number, string]]
+
+interface ExecuteMigrations {
+  execute_migrations: {
+    migrations: Migrations
+  }
+}
+
+interface AuthorizeClaim {
+  authorize_claim: {
+    authorized_addr: string
+  }
+}
+
 export interface PollData {
   id: number
   end_time: number
   status: PollStatus
   creator: string
 
-  admin_action?: object
+  admin_action?: ExecuteMigrations | AuthorizeClaim
 
   deposit_amount: string
 
