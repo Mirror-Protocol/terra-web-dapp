@@ -17,13 +17,13 @@ const PollSummary = (props: Poll) => {
     ? "authorize_claim" in admin_action
       ? [
           {
-            title: "Address to authorize admin keys to",
+            title: "address to authorize admin keys to",
             content: admin_action.authorize_claim.authorized_addr,
           },
         ]
       : "execute_migrations" in admin_action
       ? admin_action.execute_migrations.migrations.map(([address]) => ({
-          title: "Contract",
+          title: "contract",
           content: address,
         }))
       : []
@@ -50,7 +50,7 @@ const PollSummary = (props: Poll) => {
       {admin_action && (
         <>
           <Button size="xs" onClick={modal.open} className={styles.button}>
-            View Raw logs
+            View Raw Message
           </Button>
           <Modal {...modal}>
             <Card
