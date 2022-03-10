@@ -14,45 +14,51 @@ const PollSummary = (props: Poll) => {
   const modal = useModal()
 
   return (
-    <Dl
-      list={[
-        {
-          title: "Description",
-          content: <PreLine>{description}</PreLine>,
-        },
-        ...insertIf(link, {
-          title: "Link",
-          content: <ExtLink href={link}>{link}</ExtLink>,
-        }),
-        ...contents,
-        {
-          content: admin_action && (
-            <>
-              <Button size="xs" onClick={modal.open}>
-                View Raw logs
-              </Button>
-              <Modal {...modal}>
-                <Card
-                  title="Migration Message"
-                  center
-                  footer={
-                    <Button size="xs" onClick={modal.close}>
-                      Hide
-                    </Button>
-                  }
-                  className={styles.rawlog}
+    <section className={styles.wrapper}>
+      <Dl
+        list={[
+          {
+            title: "Description",
+            content: <PreLine>{description}</PreLine>,
+          },
+          ...insertIf(link, {
+            title: "Link",
+            content: <ExtLink href={link}>{link}</ExtLink>,
+          }),
+          ...contents,
+        ]}
+        type="vertical"
+      />
+
+      {admin_action && (
+        <>
+          <Button size="xs" onClick={modal.open} className={styles.button}>
+            View Raw logs
+          </Button>
+          <Modal {...modal}>
+            <Card
+              full
+              title="Raw Message"
+              center
+              footer={
+                <Button
+                  size="xs"
+                  onClick={modal.close}
+                  className={styles.close}
                 >
-                  <section className={styles.log}>
-                    <Pre>{admin_action}</Pre>
-                  </section>
-                </Card>
-              </Modal>
-            </>
-          ),
-        },
-      ]}
-      type="vertical"
-    />
+                  Hide
+                </Button>
+              }
+              className={styles.modal}
+            >
+              <div className={styles.rawlog}>
+                <Pre>{admin_action}</Pre>
+              </div>
+            </Card>
+          </Modal>
+        </>
+      )}
+    </section>
   )
 }
 
