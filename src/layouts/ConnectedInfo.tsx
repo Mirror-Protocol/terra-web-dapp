@@ -2,7 +2,7 @@ import { useState } from "react"
 import { useWallet } from "@terra-money/wallet-provider"
 import { FINDER } from "../constants"
 import { truncate } from "../libs/text"
-import { useAddress } from "../hooks"
+import { useAddress, useTnsName } from "../hooks"
 import Icon from "../components/Icon"
 import Tooltip from "../components/Tooltip"
 import ExtLink from "../components/ExtLink"
@@ -13,6 +13,7 @@ const ConnectedInfo = () => {
   const address = useAddress()
   const { disconnect, network } = useWallet()
   const { copy, copied } = useCopyAddress(address)
+  const { data: name } = useTnsName(address ?? "")
 
   return (
     <div className={styles.wallet}>
@@ -22,7 +23,7 @@ const ConnectedInfo = () => {
             href={`${FINDER}/${network.chainID}/account/${address}`}
             className={styles.address}
           >
-            {truncate(address)}
+            {truncate(name || address)}
             <Icon name="External" />
           </ExtLink>
         </Tooltip>
