@@ -23,7 +23,7 @@ const ConnectedInfo = () => {
             href={`${FINDER}/${network.chainID}/account/${address}`}
             className={styles.address}
           >
-            {name || truncate(address)}
+            {truncate(name || address)}
             <Icon name="External" />
           </ExtLink>
         </Tooltip>
