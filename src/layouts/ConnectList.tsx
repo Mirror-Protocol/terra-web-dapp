@@ -1,25 +1,21 @@
-import { ConnectType, useWallet } from "@terra-money/wallet-provider"
+import { useWallet } from "@terra-money/wallet-provider"
 import { ReactNode } from "react"
-import { ReactComponent as Terra } from "../styles/images/Terra.svg"
+import ExtLink from "../components/ExtLink"
 import styles from "./ConnectList.module.scss"
 
+interface Button {
+  label: string
+  src?: string
+  image?: ReactNode
+  onClick?: () => void
+  href?: string
+}
+
 const size = { width: 24, height: 24 }
-
 const ConnectList = () => {
-  const { availableConnections, availableInstallTypes, connect, install } =
-    useWallet()
+  const { availableConnections, availableInstallations, connect } = useWallet()
 
-  type Button = { label: string; image: ReactNode; onClick: () => void }
   const buttons = ([] as Button[])
-    .concat(
-      availableInstallTypes.includes(ConnectType.EXTENSION)
-        ? {
-            label: "Terra Station Extension",
-            image: <Terra {...size} />,
-            onClick: () => install(ConnectType.EXTENSION),
-          }
-        : []
-    )
     .concat(
       availableConnections?.map(({ type, identifier, name, icon }) => ({
         image: <img src={icon} alt="" {...size} />,
@@ -27,17 +23,37 @@ const ConnectList = () => {
         onClick: () => connect(type, identifier),
       }))
     )
+    .concat(
+      availableInstallations.map(({ name, icon, url }) => ({
+        label: `Install ${name}`,
+        src: icon,
+        href: url,
+      }))
+    )
 
   return (
     <article className={styles.component}>
       <h1 className={styles.title}>Connect to a wallet</h1>
       <section>
-        {Object.entries(buttons).map(([key, { label, image, onClick }]) => (
-          <button className={styles.button} onClick={onClick} key={key}>
-            {label}
-            {image}
-          </button>
-        ))}
+        {Object.entries(buttons).map(
+          ([key, { label, src, image, onClick, href }]) => {
+            if (onClick) {
+              return (
+                <button className={styles.button} onClick={onClick} key={key}>
+                  {label}
+                  {image}
+                </button>
+              )
+            } else {
+              return (
+                <ExtLink className={styles.button} href={href} key={key}>
+                  {label}
+                  <img src={src} {...size} alt="" />
+                </ExtLink>
+              )
+            }
+          }
+        )}
       </section>
     </article>
   )
