@@ -1,4 +1,4 @@
-import { ChartData, ChartOptions } from "chart.js"
+import { ChartOptions } from "chart.js"
 import { Doughnut } from "react-chartjs-2"
 import { gt, minus, number } from "../libs/math"
 import { TooltipIcon } from "../components/Tooltip"
@@ -15,7 +15,7 @@ const DoughnutChart = ({ format, ...props }: Props) => {
     .filter(({ value }) => gt(value, 0))
     .sort(({ value: a }, { value: b }) => number(minus(b, a)))
 
-  const data: ChartData = {
+  const data = {
     labels: list.map(({ label }) => label),
     datasets: [
       {
