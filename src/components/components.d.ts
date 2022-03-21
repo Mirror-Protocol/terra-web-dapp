@@ -62,6 +62,7 @@ type IconNames =
   | "Docs"
   | "DownSolid"
   | "Download"
+  | "DragHandle"
   | "ExclamationCircle"
   | "ExclamationCircleSolid"
   | "ExclamationTriangleSolid"

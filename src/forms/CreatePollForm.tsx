@@ -1,4 +1,4 @@
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { useQuery } from "react-query"
 import { useRecoilValueLoadable } from "recoil"
 import { useLCDClient } from "@terra-money/wallet-provider"
@@ -28,6 +28,7 @@ import { PollType } from "../pages/Poll/CreatePoll"
 import useGovReceipt from "./receipts/useGovReceipt"
 import useSelectAsset, { Config } from "./modules/useSelectAsset"
 import FormContainer from "./modules/FormContainer"
+import Sortable from "./modules/Sortable"
 import styles from "./CreatePollForm.module.scss"
 
 enum Key {
@@ -176,6 +177,8 @@ const CreatePollForm = ({ type, headings }: Props) => {
         Key.oracle,
       ],
       [PollType.COMMUNITY_SPEND]: [...defaultKeys, Key.recipient, Key.amount],
+      [PollType.UPDATE_PRIORITY]: [...defaultKeys, Key.asset],
+      [PollType.REMOVE_PRICE]: [...defaultKeys, Key.asset, Key.oracle],
     }
 
     return additionalKeys[type]
@@ -342,30 +345,45 @@ const CreatePollForm = ({ type, headings }: Props) => {
     provider_name: string
   }
 
-  const { data: proxiedList, ...proxiedListState } = useQuery(
-    ["ProxyWhitelist", ticker],
-    async ({ queryKey: [, ticker] }) => {
-      const { proxies } = await lcd.wasm.contractQuery<{
-        proxies: ProxyItem[]
-      }>(ORACLE_HUB, { proxy_whitelist: {} })
+  type PriceItem = [
+    number,
+    { address: AccAddress; provider_name: string },
+    { success: { last_updated: number; rate: string } }
+  ]
 
-      const checkSource = async (proxy_addr: AccAddress) =>
-        await lcd.wasm.contractQuery<Rate>(ORACLE_HUB, {
-          check_source: { proxy_addr, symbol: ticker },
+  const { data: proxiedList, ...proxiedListState } = useQuery(
+    ["ProxyWhitelist", ticker, asset],
+    async () => {
+      if (ticker) {
+        const { proxies } = await lcd.wasm.contractQuery<{
+          proxies: ProxyItem[]
+        }>(ORACLE_HUB, { proxy_whitelist: {} })
+
+        const checkSource = async (proxy_addr: AccAddress) =>
+          await lcd.wasm.contractQuery<Rate>(ORACLE_HUB, {
+            check_source: { proxy_addr, symbol: ticker },
+          })
+
+        const checkSourceResponses = await Promise.allSettled(
+          proxies.map(({ address }) => checkSource(address))
+        )
+
+        const sources = checkSourceResponses.map((result) => {
+          if (result.status === "rejected") return false
+          return true
         })
 
-      const checkSourceResponses = await Promise.allSettled(
-        proxies.map(({ address }) => checkSource(address))
-      )
+        return proxies.filter((_, index) => sources[index])
+      } else {
+        const data = await lcd.wasm.contractQuery<{ price_list: PriceItem[] }>(
+          ORACLE_HUB,
+          { price_list: { asset_token: asset } }
+        )
 
-      const sources = checkSourceResponses.map((result) => {
-        if (result.status === "rejected") return false
-        return true
-      })
-
-      return proxies.filter((_, index) => sources[index])
+        return data.price_list.map(([, proxy]) => proxy)
+      }
     },
-    { enabled: !!ticker, retry: false }
+    { enabled: !!(ticker || asset), retry: false }
   )
 
   const proxiedItem = proxiedList?.length === 1 ? proxiedList[0] : undefined
@@ -373,6 +391,10 @@ const CreatePollForm = ({ type, headings }: Props) => {
   useEffect(() => {
     if (proxiedItem) setValue(Key.oracle, proxiedItem.address)
   }, [proxiedItem, setValue])
+
+  useEffect(() => {
+    if (proxiedList) setPriorityList(proxiedList)
+  }, [proxiedList, setValue])
 
   /* render:form */
   const isCollateral =
@@ -387,21 +409,6 @@ const CreatePollForm = ({ type, headings }: Props) => {
   }
 
   const select = useSelectAsset(selectAssetConfig)
-
-  const descriptionLabel = {
-    [PollType.TEXT]: "Description",
-    [PollType.TEXT_WHITELIST]: "Reason for listing",
-    [PollType.TEXT_PREIPO]: "Reason for listing",
-    [PollType.WHITELIST]: "Description",
-    [PollType.PREIPO]: "Description",
-    [PollType.DELIST_COLLATERAL]: "Description",
-    [PollType.DELIST_ASSET]: "Description",
-    [PollType.INFLATION]: "Reason for modifying weight parameter",
-    [PollType.MINT_UPDATE]: "Reason for modifying mint parameter",
-    [PollType.GOV_UPDATE]: "Reason for modifying governance parameter",
-    [PollType.COLLATERAL]: "Reasons for modifying collateral parameter",
-    [PollType.COMMUNITY_SPEND]: "Reason for community pool spending",
-  }[type]
 
   const weightPlaceholders = {
     [Key.weight]: div(getWeight(asset), 100),
@@ -437,6 +444,7 @@ const CreatePollForm = ({ type, headings }: Props) => {
     </option>
   )
 
+  const fieldKeys = getFieldKeys()
   const fields = {
     deposit: {
       help: renderBalance(findBalance(getToken("MIR")), "MIR"),
@@ -450,7 +458,7 @@ const CreatePollForm = ({ type, headings }: Props) => {
         input: { placeholder: "", autoFocus: true },
       },
       [Key.description]: {
-        label: descriptionLabel,
+        label: "Description",
         textarea: { placeholder: "" },
       },
       [Key.link]: {
@@ -501,15 +509,18 @@ const CreatePollForm = ({ type, headings }: Props) => {
       // Type.WHITELIST
       [Key.oracle]: {
         label: "Oracle proxy",
-        value: !ticker
-          ? "Enter ticker to find options"
-          : proxiedListState.error || (proxiedList && !proxiedList.length)
-          ? "No available price"
-          : proxiedListState.isLoading
-          ? "Loading..."
-          : proxiedItem
-          ? proxiedItem.provider_name
-          : undefined,
+        value:
+          fieldKeys.includes(Key.ticker) && !ticker
+            ? "Enter ticker to find options"
+            : fieldKeys.includes(Key.asset) && !asset
+            ? "Select asset to find options"
+            : proxiedListState.error || (proxiedList && !proxiedList.length)
+            ? "No available price"
+            : proxiedListState.isLoading
+            ? "Loading..."
+            : proxiedItem
+            ? proxiedItem.provider_name
+            : undefined,
         select:
           proxiedList && proxiedList.length > 1 ? (
             <select
@@ -718,7 +729,7 @@ const CreatePollForm = ({ type, headings }: Props) => {
   /* submit */
   const newContractMsg = useNewContractMsg()
   const token = asset
-  const { mirrorToken, mint, gov, factory, community, collateralOracle } =
+  const { mirrorToken, mint, gov, factory, community, collateralOracle, hub } =
     contracts
 
   /* Type.WHITELIST */
@@ -791,6 +802,23 @@ const CreatePollForm = ({ type, headings }: Props) => {
     amount: toAmount(amount),
   }
 
+  /* Type.UPDATE_PRIORITY */
+  const [priorityList, setPriorityList] = useState<ProxyItem[]>()
+
+  const updateSourcePriorityList = {
+    symbol: ticker,
+    priority_list: priorityList?.map(({ address }, index) => [
+      address,
+      (index + 1) * 10,
+    ]),
+  }
+
+  /* Type.REMOVE_PRICE */
+  const removeSource = {
+    symbol: ticker,
+    proxy_addr: oracle,
+  }
+
   const execute_msg = {
     [PollType.TEXT]: undefined,
     [PollType.TEXT_WHITELIST]: undefined,
@@ -833,6 +861,14 @@ const CreatePollForm = ({ type, headings }: Props) => {
       contract: community,
       msg: toBase64({ spend: communitySpend }),
     },
+    [PollType.UPDATE_PRIORITY]: {
+      contract: hub,
+      msg: toBase64({ update_source_priority_list: updateSourcePriorityList }),
+    },
+    [PollType.REMOVE_PRICE]: {
+      contract: hub,
+      msg: toBase64({ remove_source: removeSource }),
+    },
   }[type]
 
   const msg = toBase64({
@@ -852,6 +888,10 @@ const CreatePollForm = ({ type, headings }: Props) => {
     : type === PollType.GOV_UPDATE &&
       Object.values(govUpdateConfig).filter(Boolean).length > 1
     ? ["Only one governance parameter can be modified at a time."]
+    : type === PollType.UPDATE_PRIORITY && proxiedItem
+    ? ["There is only one price source"]
+    : type === PollType.REMOVE_PRICE && proxiedItem
+    ? ["Cannot remove the only price source"]
     : undefined
 
   const disabled = invalid || !!messages?.length
@@ -859,7 +899,6 @@ const CreatePollForm = ({ type, headings }: Props) => {
   /* result */
   const label = "Submit"
   const parseTx = useGovReceipt()
-  const fieldKeys = getFieldKeys()
   const container = { attrs, contents: [], messages, label, disabled, data }
 
   return (
@@ -874,6 +913,25 @@ const CreatePollForm = ({ type, headings }: Props) => {
           !fields[key].input?.disabled && (
             <FormGroup {...fields[key]} type={2} textAlign="left" key={key} />
           )
+      )}
+
+      {type === PollType.UPDATE_PRIORITY && priorityList && (
+        <FormGroup label="Priority" type={2} textAlign="left">
+          <Sortable
+            list={priorityList.map(({ address, provider_name }) => ({
+              id: address,
+              content: provider_name,
+            }))}
+            callback={(list) =>
+              setPriorityList(
+                list.map(({ id: address, content: provider_name }) => ({
+                  address,
+                  provider_name,
+                }))
+              )
+            }
+          />
+        </FormGroup>
       )}
 
       <FormGroup {...fields["deposit"]} type={2} textAlign="left" />

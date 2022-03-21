@@ -1,0 +1,10 @@
+@import "mixins";
+
+.list {
+  margin-bottom: -20px;
+}
+
+.item {
+  @include flex(space-between);
+  margin-bottom: 20px;
+}

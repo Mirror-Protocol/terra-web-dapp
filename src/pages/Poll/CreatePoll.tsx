@@ -20,6 +20,8 @@ export enum PollType {
   GOV_UPDATE = "GOV-UPDATE",
   COLLATERAL = "COLLATERAL",
   COMMUNITY_SPEND = "COMMUNITY-SPEND",
+  UPDATE_PRIORITY = "UPDATE_PRIORITY",
+  REMOVE_PRICE = "REMOVE_PRICE",
 }
 
 const Groups = [
@@ -48,6 +50,10 @@ const Groups = [
   {
     title: "Parameters",
     items: [PollType.MINT_UPDATE, PollType.GOV_UPDATE, PollType.COLLATERAL],
+  },
+  {
+    title: "Price Oracle",
+    items: [PollType.UPDATE_PRIORITY, PollType.REMOVE_PRICE],
   },
 ]
 
@@ -103,6 +109,14 @@ const polls: Record<PollType, { title: string; desc: string }> = {
   [PollType.COMMUNITY_SPEND]: {
     title: "Spend community pool",
     desc: "Submit community pool spending poll",
+  },
+  [PollType.UPDATE_PRIORITY]: {
+    title: "Update Price Priority",
+    desc: "Updates the price priority parameter of an existing asset",
+  },
+  [PollType.REMOVE_PRICE]: {
+    title: "Remove Price",
+    desc: "Removes an already used oracle price for an existing asset",
   },
 }
 
