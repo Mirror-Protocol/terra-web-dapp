@@ -508,7 +508,7 @@ const CreatePollForm = ({ type, headings }: Props) => {
         value: !ticker
           ? "Enter symbol to find options"
           : priceListResponse.error
-          ? "Not found"
+          ? "No available price"
           : priceListResponse.isLoading
           ? "Loading..."
           : isPriceListUnique
