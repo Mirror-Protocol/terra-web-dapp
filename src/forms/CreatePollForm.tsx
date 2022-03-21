@@ -42,7 +42,6 @@ enum Key {
   suggestedOracle = "suggestedOracle",
 
   /* Type.WHITELIST */
-  symbol = "symbol",
   reference = "reference",
   oracle = "oracle",
   weight = "weight",
@@ -80,7 +79,7 @@ interface Props {
 
 const CreatePollForm = ({ type, headings }: Props) => {
   /* context */
-  const { contracts, getToken, getSymbol, toAssetInfo } = useProtocol()
+  const { contracts, getToken, toAssetInfo } = useProtocol()
   const { contents: findBalance } = useFindBalance()
   const config = useGovConfig()
   const communityConfig = useRecoilValueLoadable(communityConfigQuery)
@@ -134,7 +133,7 @@ const CreatePollForm = ({ type, headings }: Props) => {
       [PollType.WHITELIST]: [
         ...defaultKeys,
         Key.name,
-        Key.symbol,
+        Key.ticker,
         Key.oracle,
         Key.reference,
         Key.auctionDiscount,
@@ -143,7 +142,7 @@ const CreatePollForm = ({ type, headings }: Props) => {
       [PollType.PREIPO]: [
         ...defaultKeys,
         Key.name,
-        Key.symbol,
+        Key.ticker,
         Key.oracle,
         Key.reference,
         Key.auctionDiscount,
@@ -205,7 +204,7 @@ const CreatePollForm = ({ type, headings }: Props) => {
   /* form:validate */
   const validate = (values: Values<Key>) => {
     const { title, description, link } = values
-    const { name, ticker, symbol, oracle, asset } = values
+    const { name, ticker, oracle, asset } = values
     const { weight, auctionDiscount, minCollateralRatio } = values
     const { mintPeriod, minCollateralRatioAfterIPO, price } = values
     const { owner, quorum, threshold, votingPeriod } = values
@@ -224,7 +223,6 @@ const CreatePollForm = ({ type, headings }: Props) => {
       [Key.link]: { min: 12, max: 128 },
       [Key.name]: { min: 3, max: 50 },
       [Key.ticker]: { min: 1, max: 11 },
-      [Key.symbol]: { min: 3, max: 12 },
     }
 
     return record(
@@ -253,10 +251,6 @@ const CreatePollForm = ({ type, headings }: Props) => {
         [Key.suggestedOracle]: "",
 
         // Type.WHITELIST
-        [Key.symbol]:
-          v.required(symbol) ||
-          v.length(symbol, textRanges[Key.symbol], "Symbol") ||
-          v.symbol(symbol),
         [Key.reference]: !reference
           ? ""
           : v.integer(reference, "Reference Poll ID"),
@@ -331,7 +325,7 @@ const CreatePollForm = ({ type, headings }: Props) => {
   const description = combineDescription(values)
 
   const { link } = values
-  const { name, symbol, oracle, asset } = values
+  const { name, ticker, oracle, asset } = values
   const { weight, auctionDiscount, minCollateralRatio } = values
   const { mintPeriod, minCollateralRatioAfterIPO, price } = values
   const { owner, quorum, threshold, votingPeriod } = values
@@ -342,7 +336,6 @@ const CreatePollForm = ({ type, headings }: Props) => {
 
   /* query: oracle feeder */
   const lcd = useLCDClient()
-  const ticker = (asset ? getSymbol(asset) : symbol).slice(1)
 
   interface ProxyItem {
     address: AccAddress
@@ -506,14 +499,10 @@ const CreatePollForm = ({ type, headings }: Props) => {
       },
 
       // Type.WHITELIST
-      [Key.symbol]: {
-        label: "Symbol",
-        input: { placeholder: "mAAPL" },
-      },
       [Key.oracle]: {
         label: "Oracle proxy",
         value: !ticker
-          ? "Enter symbol to find options"
+          ? "Enter ticker to find options"
           : proxiedListState.error || (proxiedList && !proxiedList.length)
           ? "No available price"
           : proxiedListState.isLoading
@@ -617,7 +606,7 @@ const CreatePollForm = ({ type, headings }: Props) => {
           step: step(),
           placeholder: mintPlaceholders[Key.price],
         },
-        unit: symbol ? `UST per ${symbol}` : "",
+        unit: ticker ? `UST per ${ticker}` : "",
         unitAfterValue: true,
       },
 
@@ -735,7 +724,7 @@ const CreatePollForm = ({ type, headings }: Props) => {
   /* Type.WHITELIST */
   const whitelistMessage = {
     name,
-    symbol,
+    symbol: ticker,
     oracle_proxy: oracle,
     params: {
       auction_discount: div(auctionDiscount, 100),
