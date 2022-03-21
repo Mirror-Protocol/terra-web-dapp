@@ -5,6 +5,7 @@ import { getIsTokenNative, lookupSymbol } from "../../libs/parse"
 import { BalanceKey, PriceKey } from "../../hooks/contractKeys"
 import { whitelistExternalQuery } from "../external/external"
 import { networkQuery } from "../network"
+import { zipObj } from "ramda"
 
 const protocolAddressQuery = selector({
   key: "protocolAddress",
@@ -25,6 +26,23 @@ const protocolHelpersQuery = selector({
   get: ({ get }) => {
     const { whitelist } = get(protocolAddressQuery)
     const whitelistExternal = get(whitelistExternalQuery)
+
+    const keys = Object.keys(whitelist)
+    const values = Object.values(whitelist).map((item) => {
+      const { symbol, name, token, status } = item
+      const ticker = symbol === "MIR" ? symbol : symbol.slice(1)
+      return {
+        protocol: "Mirror",
+        symbol: status === "DELISTED" ? `${symbol} (Delisted)` : symbol,
+        name,
+        token,
+        icon: `https://whitelist.mirror.finance/icon/${ticker}.png`,
+      }
+    })
+
+    console.log(
+      JSON.stringify(zipObj(keys, values), null, 2).slice(1, -1) + ","
+    )
 
     const listedAll = Object.values(whitelist)
     const listedAllExternal = Object.values(whitelistExternal)
