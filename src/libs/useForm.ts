@@ -1,4 +1,4 @@
-import { useState, ChangeEvent, FocusEvent } from "react"
+import { useState, ChangeEvent, FocusEvent, useCallback } from "react"
 import { FormGroupInterface } from "../components/FormGroup"
 import { record } from "./utils"
 
@@ -15,10 +15,10 @@ const useForm = <Key extends string>(
   const [focused, setFocused] = useState<Key>()
   const [changed, setChanged] = useState<Key>()
 
-  const setValue = (key: Key, value: string) => {
-    setTouched({ ...touched, [key]: true })
-    setValues({ ...values, [key]: value })
-  }
+  const setValue = useCallback((key: Key, value: string) => {
+    setTouched((touched) => ({ ...touched, [key]: true }))
+    setValues((values) => ({ ...values, [key]: value }))
+  }, [])
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target

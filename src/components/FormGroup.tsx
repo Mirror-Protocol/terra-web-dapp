@@ -1,4 +1,4 @@
-import { useRef } from "react"
+import { FC, useRef } from "react"
 import { ReactNode, SelectHTMLAttributes, DetailedHTMLProps } from "react"
 import { InputHTMLAttributes, TextareaHTMLAttributes } from "react"
 import { isNil } from "ramda"
@@ -48,10 +48,10 @@ export interface FormGroupInterface {
   unitAfterValue?: boolean
 }
 
-const FormGroup = (props: FormGroupInterface) => {
+const FormGroup: FC<FormGroupInterface> = (props) => {
   const { prev, input, textarea, select, value } = props
   const { label, help, unit, max, assets, focused, error, warn, info } = props
-  const { type = 1, textAlign, size = "sm", skipFeedback } = props
+  const { type = 1, textAlign, size = "sm", skipFeedback, children } = props
 
   const inputRef = useRef<HTMLInputElement>(null)
   const inputAttrs: Input = {
@@ -112,8 +112,10 @@ const FormGroup = (props: FormGroupInterface) => {
             <textarea {...textarea} />
           ) : select ? (
             <div className={styles.select}>{select}</div>
-          ) : (
+          ) : value ? (
             <span>{value}</span>
+          ) : (
+            children
           )}
         </section>
 

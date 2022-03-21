@@ -1,8 +1,12 @@
+import { useEffect } from "react"
+import { useQuery } from "react-query"
 import { useRecoilValueLoadable } from "recoil"
+import { useLCDClient } from "@terra-money/wallet-provider"
+import { AccAddress } from "@terra-money/terra.js"
 
 import useNewContractMsg from "../libs/useNewContractMsg"
 import Tooltips from "../lang/Tooltips"
-import { MAX_MSG_LENGTH } from "../constants"
+import { MAX_MSG_LENGTH, ORACLE_HUB } from "../constants"
 import { div, gte, number, times } from "../libs/math"
 import { record, getLength } from "../libs/utils"
 import { lookup, toAmount } from "../libs/parse"
@@ -76,7 +80,7 @@ interface Props {
 
 const CreatePollForm = ({ type, headings }: Props) => {
   /* context */
-  const { contracts, getToken, toAssetInfo } = useProtocol()
+  const { contracts, getToken, getSymbol, toAssetInfo } = useProtocol()
   const { contents: findBalance } = useFindBalance()
   const config = useGovConfig()
   const communityConfig = useRecoilValueLoadable(communityConfigQuery)
@@ -131,8 +135,8 @@ const CreatePollForm = ({ type, headings }: Props) => {
         ...defaultKeys,
         Key.name,
         Key.symbol,
-        Key.reference,
         Key.oracle,
+        Key.reference,
         Key.auctionDiscount,
         Key.minCollateralRatio,
       ],
@@ -140,8 +144,8 @@ const CreatePollForm = ({ type, headings }: Props) => {
         ...defaultKeys,
         Key.name,
         Key.symbol,
-        Key.reference,
         Key.oracle,
+        Key.reference,
         Key.auctionDiscount,
         Key.minCollateralRatio,
         Key.mintPeriod,
@@ -336,6 +340,40 @@ const CreatePollForm = ({ type, headings }: Props) => {
 
   const deposit = config?.default_poll_config.proposal_deposit ?? "0"
 
+  /* query: oracle feeder */
+  const lcd = useLCDClient()
+  const ticker = (asset ? getSymbol(asset) : symbol).slice(1)
+
+  type PriceItem = [
+    number,
+    { address: AccAddress; provider_name: string },
+    { success: { last_updated: number; rate: string } }
+  ]
+
+  const { data: priceList, ...priceListResponse } = useQuery(
+    [
+      asset
+        ? { price_list: { asset_token: asset } }
+        : { price_list_by_symbol: { symbol: ticker } },
+    ],
+    async ({ queryKey: [query] }) => {
+      const data = await lcd.wasm.contractQuery<{ price_list: PriceItem[] }>(
+        ORACLE_HUB,
+        query
+      )
+
+      return data
+    },
+    { enabled: !!ticker, retry: false }
+  )
+
+  const isPriceListUnique = priceList?.price_list.length === 1
+  useEffect(() => {
+    if (priceList) {
+      setValue(Key.oracle, priceList.price_list[0][1].address)
+    }
+  }, [priceList, setValue])
+
   /* render:form */
   const isCollateral =
     type === PollType.COLLATERAL || type === PollType.DELIST_COLLATERAL
@@ -392,6 +430,12 @@ const CreatePollForm = ({ type, headings }: Props) => {
       lookup(config?.default_poll_config.proposal_deposit, "MIR") ?? "",
     [Key.voterWeight]: config?.voter_weight ?? "",
   }
+
+  const renderPriceItemOption = ([, { address, provider_name }]: PriceItem) => (
+    <option value={address} key={address}>
+      {provider_name}
+    </option>
+  )
 
   const fields = {
     deposit: {
@@ -461,7 +505,25 @@ const CreatePollForm = ({ type, headings }: Props) => {
       },
       [Key.oracle]: {
         label: "Oracle Feeder",
-        input: { placeholder: "Terra address of the oracle feeder" },
+        value: !ticker
+          ? "Enter symbol to find options"
+          : priceListResponse.error
+          ? "Not found"
+          : priceListResponse.isLoading
+          ? "Loading..."
+          : isPriceListUnique
+          ? oracle
+          : undefined,
+        select:
+          priceList && priceList.price_list.length > 1 ? (
+            <select
+              value={oracle}
+              onChange={(e) => setValue(Key.oracle, e.target.value)}
+              style={{ width: "100%" }}
+            >
+              {priceList.price_list.map(renderPriceItemOption)}
+            </select>
+          ) : undefined,
       },
       [Key.reference]: {
         label: "Reference Poll ID (Optional)",
