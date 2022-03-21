@@ -26,15 +26,16 @@ const pairPoolState = atom<Dictionary<PairPool> | undefined>({
 export const oraclePriceQuery = selector({
   key: "oraclePrice",
   get: async ({ get }) => {
-    const { contracts } = get(protocolQuery)
+    //const { contracts } = get(protocolQuery)
     const getListedContractQueries = get(getListedContractQueriesQuery)
     return await getListedContractQueries<Rate>(
       ({ token, symbol }) =>
         symbol === "MIR"
           ? undefined
           : {
-              contract: contracts["oracle"],
-              msg: { price: { base_asset: token, quote_asset: "uusd" } },
+              //TODO: contracts["oracleHub"]
+              contract: "terra1sdr3rya4h039f4htfm42q44x3dlaxra7hc7p8e",
+              msg: { price: { asset_token: token } },
             },
       "oraclePrice"
     )
