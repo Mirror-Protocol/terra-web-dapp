@@ -344,35 +344,42 @@ const CreatePollForm = ({ type, headings }: Props) => {
   const lcd = useLCDClient()
   const ticker = (asset ? getSymbol(asset) : symbol).slice(1)
 
-  type PriceItem = [
-    number,
-    { address: AccAddress; provider_name: string },
-    { success: { last_updated: number; rate: string } }
-  ]
+  interface ProxyItem {
+    address: AccAddress
+    provider_name: string
+  }
 
-  const { data: priceList, ...priceListResponse } = useQuery(
-    [
-      asset
-        ? { price_list: { asset_token: asset } }
-        : { price_list_by_symbol: { symbol: ticker } },
-    ],
-    async ({ queryKey: [query] }) => {
-      const data = await lcd.wasm.contractQuery<{ price_list: PriceItem[] }>(
-        ORACLE_HUB,
-        query
+  const { data: proxiedList, ...proxiedListState } = useQuery(
+    ["ProxyWhitelist", ticker],
+    async ({ queryKey: [, ticker] }) => {
+      const { proxies } = await lcd.wasm.contractQuery<{
+        proxies: ProxyItem[]
+      }>(ORACLE_HUB, { proxy_whitelist: {} })
+
+      const checkSource = async (proxy_addr: AccAddress) =>
+        await lcd.wasm.contractQuery<Rate>(ORACLE_HUB, {
+          check_source: { proxy_addr, symbol: ticker },
+        })
+
+      const checkSourceResponses = await Promise.allSettled(
+        proxies.map(({ address }) => checkSource(address))
       )
 
-      return data
+      const sources = checkSourceResponses.map((result) => {
+        if (result.status === "rejected") return false
+        return true
+      })
+
+      return proxies.filter((_, index) => sources[index])
     },
     { enabled: !!ticker, retry: false }
   )
 
-  const isPriceListUnique = priceList?.price_list.length === 1
+  const proxiedItem = proxiedList?.length === 1 ? proxiedList[0] : undefined
+
   useEffect(() => {
-    if (priceList) {
-      setValue(Key.oracle, priceList.price_list[0][1].address)
-    }
-  }, [priceList, setValue])
+    if (proxiedItem) setValue(Key.oracle, proxiedItem.address)
+  }, [proxiedItem, setValue])
 
   /* render:form */
   const isCollateral =
@@ -431,7 +438,7 @@ const CreatePollForm = ({ type, headings }: Props) => {
     [Key.voterWeight]: config?.voter_weight ?? "",
   }
 
-  const renderPriceItemOption = ([, { address, provider_name }]: PriceItem) => (
+  const renderPriceItemOption = ({ address, provider_name }: ProxyItem) => (
     <option value={address} key={address}>
       {provider_name}
     </option>
@@ -504,24 +511,24 @@ const CreatePollForm = ({ type, headings }: Props) => {
         input: { placeholder: "mAAPL" },
       },
       [Key.oracle]: {
-        label: "Oracle Feeder",
+        label: "Oracle proxy",
         value: !ticker
           ? "Enter symbol to find options"
-          : priceListResponse.error
+          : proxiedListState.error || (proxiedList && !proxiedList.length)
           ? "No available price"
-          : priceListResponse.isLoading
+          : proxiedListState.isLoading
           ? "Loading..."
-          : isPriceListUnique
-          ? oracle
+          : proxiedItem
+          ? proxiedItem.provider_name
           : undefined,
         select:
-          priceList && priceList.price_list.length > 1 ? (
+          proxiedList && proxiedList.length > 1 ? (
             <select
               value={oracle}
               onChange={(e) => setValue(Key.oracle, e.target.value)}
               style={{ width: "100%" }}
             >
-              {priceList.price_list.map(renderPriceItemOption)}
+              {proxiedList.map(renderPriceItemOption)}
             </select>
           ) : undefined,
       },
@@ -729,7 +736,7 @@ const CreatePollForm = ({ type, headings }: Props) => {
   const whitelistMessage = {
     name,
     symbol,
-    oracle_feeder: oracle,
+    oracle_proxy: oracle,
     params: {
       auction_discount: div(auctionDiscount, 100),
       min_collateral_ratio: div(minCollateralRatio, 100),
