@@ -1,4 +1,5 @@
 import { insertIf } from "../../libs/utils"
+import { fromBase64 } from "../../libs/formHelpers"
 import { Poll } from "../../data/gov/poll"
 import Dl from "../../components/Dl"
 import PreLine from "../../components/PreLine"
@@ -10,7 +11,7 @@ import Modal, { useModal } from "../../containers/Modal"
 import styles from "./PollSummary.module.scss"
 
 const PollSummary = (props: Poll) => {
-  const { description, link, admin_action, contents = [] } = props
+  const { description, link, admin_action, execute_data, contents = [] } = props
   const modal = useModal()
 
   const content = admin_action
@@ -28,6 +29,11 @@ const PollSummary = (props: Poll) => {
         }))
       : []
     : []
+
+  const executeData = execute_data && {
+    ...execute_data,
+    msg: fromBase64(execute_data.msg),
+  }
 
   return (
     <section className={styles.wrapper}>
@@ -47,7 +53,7 @@ const PollSummary = (props: Poll) => {
         type="vertical"
       />
 
-      {admin_action && (
+      {(admin_action || executeData) && (
         <>
           <Button size="xs" onClick={modal.open} className={styles.button}>
             View Raw Message
@@ -65,7 +71,7 @@ const PollSummary = (props: Poll) => {
               className={styles.modal}
             >
               <div className={styles.message}>
-                <Pre>{admin_action}</Pre>
+                <Pre>{admin_action || executeData}</Pre>
               </div>
             </Card>
           </Modal>

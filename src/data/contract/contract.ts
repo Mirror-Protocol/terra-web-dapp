@@ -4,6 +4,7 @@ import { getListedContractQueriesQuery } from "../utils/queries"
 import { getContractQueryQuery } from "../utils/query"
 import { priceKeyIndexState } from "../app"
 import { addressState } from "../wallet"
+import { ORACLE_HUB } from "../../constants"
 import { protocolQuery } from "./protocol"
 
 export const pairPoolQuery = selector({
@@ -34,7 +35,7 @@ export const oraclePriceQuery = selector({
           ? undefined
           : {
               //TODO: contracts["oracleHub"]
-              contract: "terra1sdr3rya4h039f4htfm42q44x3dlaxra7hc7p8e",
+              contract: ORACLE_HUB,
               msg: { price: { asset_token: token } },
             },
       "oraclePrice"
