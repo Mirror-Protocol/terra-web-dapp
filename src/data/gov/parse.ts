@@ -6,7 +6,13 @@ import { fromBase64 } from "../../libs/formHelpers"
 import { protocolQuery } from "../contract/protocol"
 import { Content } from "../../components/componentTypes"
 import { PollType } from "../../pages/Poll/CreatePoll"
-import { AuthorizeClaim, ExecuteMigrations, Poll, PollData } from "./poll"
+import {
+  AuthorizeClaim,
+  ExecuteData,
+  ExecuteMigrations,
+  Poll,
+  PollData,
+} from "./poll"
 
 const parsePollQuery = selector({
   key: "parsePoll",
@@ -212,4 +218,22 @@ export const getConfig = (
     : default_poll_config
 
   return poll_config
+}
+
+export const parseExecuteData = (obj: ExecuteData) => {
+  const data = fromBase64<{ pass_command: ExecuteData } | object>(obj.msg)
+  const parse = {
+    ...obj,
+    msg:
+      "pass_command" in data
+        ? {
+            pass_command: {
+              ...data.pass_command,
+              msg: fromBase64(data.pass_command.msg),
+            },
+          }
+        : data,
+  }
+
+  return parse
 }

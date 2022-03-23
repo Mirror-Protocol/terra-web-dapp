@@ -1,6 +1,6 @@
 import { insertIf } from "../../libs/utils"
-import { fromBase64 } from "../../libs/formHelpers"
 import { Poll } from "../../data/gov/poll"
+import { parseExecuteData } from "../../data/gov/parse"
 import Dl from "../../components/Dl"
 import PreLine from "../../components/PreLine"
 import ExtLink from "../../components/ExtLink"
@@ -30,10 +30,7 @@ const PollSummary = (props: Poll) => {
       : []
     : []
 
-  const executeData = execute_data && {
-    ...execute_data,
-    msg: fromBase64(execute_data.msg),
-  }
+  const executeData = execute_data && parseExecuteData(execute_data)
 
   return (
     <section className={styles.wrapper}>

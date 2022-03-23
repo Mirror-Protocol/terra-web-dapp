@@ -18,6 +18,11 @@ export interface AuthorizeClaim {
   }
 }
 
+export interface ExecuteData {
+  contract: string
+  msg: EncodedExecuteMsg
+}
+
 export interface PollData {
   id: number
   end_time: number
@@ -38,10 +43,7 @@ export interface PollData {
   description: string
   link?: string
 
-  execute_data: {
-    contract: string
-    msg: EncodedExecuteMsg
-  }
+  execute_data: ExecuteData
 }
 
 export enum PollStatus {
