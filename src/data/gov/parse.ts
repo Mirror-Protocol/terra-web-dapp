@@ -4,6 +4,7 @@ import { percent } from "../../libs/num"
 import { formatAsset } from "../../libs/parse"
 import { fromBase64 } from "../../libs/formHelpers"
 import { protocolQuery } from "../contract/protocol"
+import { getProxyWhitelist } from "../contract/proxy"
 import { Content } from "../../components/componentTypes"
 import { PollType, ViewOnlyPollType } from "../../pages/Poll/CreatePoll"
 import { AdminAction, ExecuteData, Poll, PollData } from "./poll"
@@ -12,6 +13,7 @@ const parsePollQuery = selector({
   key: "parsePoll",
   get: ({ get }) => {
     const { getSymbol, parseAssetInfo } = get(protocolQuery)
+    const proxyWhitelist = get(getProxyWhitelist)
 
     const parseParams = (
       decoded: DecodedExecuteMsg,
@@ -115,7 +117,10 @@ const parsePollQuery = selector({
       const { symbol, priority_list } = updatePriority
       const contents = priority_list
         .sort(([, prev], [, current]) => prev - current)
-        .map(([addr]) => ({ title: "Address", content: addr }))
+        .map(([addr]) => {
+          const proxy = parseProxyAddress(addr)
+          return { title: "Address", content: proxy }
+        })
       return {
         contents: [{ title: "Symbol", content: symbol }, ...contents],
       }
@@ -123,12 +128,20 @@ const parsePollQuery = selector({
 
     const parseRemovePrice = (removeSource: RemovePrice) => {
       const { symbol, proxy_addr } = removeSource
+      const proxy = parseProxyAddress(proxy_addr)
       return {
         contents: [
           { title: "Symbol", content: symbol },
-          { title: "Proxy Address", content: proxy_addr },
+          { title: "Proxy", content: proxy },
         ],
       }
+    }
+
+    const parseProxyAddress = (address: string) => {
+      const proxy =
+        proxyWhitelist?.proxies.find((list) => list.address === address)
+          ?.provider_name || address
+      return proxy
     }
 
     const parseUpdateAsset = ({ asset_token, ...params }: UpdateAsset) => ({

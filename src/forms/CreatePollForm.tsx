@@ -20,6 +20,7 @@ import { useGovConfig } from "../data/gov/config"
 import { communityConfigQuery } from "../data/contract/info"
 import { getDistributionWeightQuery } from "../data/contract/info"
 import { mintAssetConfigQuery } from "../data/contract/contract"
+import { ProxyItem } from "../data/contract/proxy"
 
 import { TooltipIcon } from "../components/Tooltip"
 import FormGroup from "../components/FormGroup"
@@ -339,11 +340,6 @@ const CreatePollForm = ({ type, headings }: Props) => {
 
   /* query: oracle feeder */
   const lcd = useLCDClient()
-
-  interface ProxyItem {
-    address: AccAddress
-    provider_name: string
-  }
 
   type PriceItem = [
     number,
