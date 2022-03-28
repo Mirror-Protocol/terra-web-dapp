@@ -862,7 +862,7 @@ const CreatePollForm = ({ type, headings }: Props) => {
       msg: toBase64({ spend: communitySpend }),
     },
     [PollType.UPDATE_PRIORITY]: {
-      contract: hub,
+      contract: factory,
       msg: toBase64({ update_source_priority_list: updateSourcePriorityList }),
     },
     [PollType.REMOVE_PRICE]: {
