@@ -729,7 +729,7 @@ const CreatePollForm = ({ type, headings }: Props) => {
   /* submit */
   const newContractMsg = useNewContractMsg()
   const token = asset
-  const { mirrorToken, mint, gov, factory, community, collateralOracle, hub } =
+  const { mirrorToken, mint, gov, factory, community, collateralOracle } =
     contracts
 
   /* Type.WHITELIST */
@@ -866,7 +866,7 @@ const CreatePollForm = ({ type, headings }: Props) => {
       msg: toBase64({ update_source_priority_list: updateSourcePriorityList }),
     },
     [PollType.REMOVE_PRICE]: {
-      contract: hub,
+      contract: factory,
       msg: toBase64({ remove_source: removeSource }),
     },
   }[type]
