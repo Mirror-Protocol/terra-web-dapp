@@ -11,6 +11,11 @@ type DecodedExecuteMsg =
   | { update_collateral_multiplier: UpdateCollateralMultiplier }
   | { spend: Spend }
 
+type PassCommandMsg =
+  | { update_asset: UpdateAsset }
+  | { update_source_priority_list: UpdatePriority }
+  | { remove_source: RemovePrice }
+
 interface Whitelist {
   name: string
   symbol: string
@@ -42,6 +47,16 @@ interface UpdateAsset extends Partial<AssetParams> {
 interface UpdateWeight {
   asset_token: string
   weight: string
+}
+
+interface UpdatePriority {
+  symbol: string
+  priority_list: [[string, number]]
+}
+
+interface RemovePrice {
+  symbol: string
+  proxy_addr: string
 }
 
 interface PassCommand {

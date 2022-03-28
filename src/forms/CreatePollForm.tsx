@@ -80,7 +80,7 @@ interface Props {
 
 const CreatePollForm = ({ type, headings }: Props) => {
   /* context */
-  const { contracts, getToken, toAssetInfo } = useProtocol()
+  const { contracts, getToken, toAssetInfo, parseAssetInfo } = useProtocol()
   const { contents: findBalance } = useFindBalance()
   const config = useGovConfig()
   const communityConfig = useRecoilValueLoadable(communityConfigQuery)
@@ -802,21 +802,34 @@ const CreatePollForm = ({ type, headings }: Props) => {
     amount: toAmount(amount),
   }
 
+  const assetInfo = toAssetInfo(token)
+  const { symbol } = parseAssetInfo(assetInfo)
+
   /* Type.UPDATE_PRIORITY */
   const [priorityList, setPriorityList] = useState<ProxyItem[]>()
 
   const updateSourcePriorityList = {
-    symbol: ticker,
+    symbol: symbol.slice(1),
     priority_list: priorityList?.map(({ address }, index) => [
       address,
       (index + 1) * 10,
     ]),
   }
 
+  const updatePriorityPassCommand = {
+    contract_addr: ORACLE_HUB,
+    msg: toBase64({ update_source_priority_list: updateSourcePriorityList }),
+  }
+
   /* Type.REMOVE_PRICE */
   const removeSource = {
-    symbol: ticker,
+    symbol: symbol.slice(1),
     proxy_addr: oracle,
+  }
+
+  const removePricePassCommand = {
+    contract_addr: ORACLE_HUB,
+    msg: toBase64({ remove_source: removeSource }),
   }
 
   const execute_msg = {
@@ -863,11 +876,15 @@ const CreatePollForm = ({ type, headings }: Props) => {
     },
     [PollType.UPDATE_PRIORITY]: {
       contract: factory,
-      msg: toBase64({ update_source_priority_list: updateSourcePriorityList }),
+      msg: toBase64({
+        pass_command: updatePriorityPassCommand,
+      }),
     },
     [PollType.REMOVE_PRICE]: {
       contract: factory,
-      msg: toBase64({ remove_source: removeSource }),
+      msg: toBase64({
+        pass_command: removePricePassCommand,
+      }),
     },
   }[type]
 

@@ -32,7 +32,7 @@ const parsePollQuery = selector({
           : "revoke_asset" in decoded
           ? PollType.DELIST_ASSET
           : "pass_command" in decoded
-          ? PollType.MINT_UPDATE
+          ? parsePassCommandType(decoded.pass_command)
           : "update_weight" in decoded
           ? PollType.INFLATION
           : "update_config" in decoded
@@ -41,10 +41,6 @@ const parsePollQuery = selector({
           ? PollType.COLLATERAL
           : "spend" in decoded
           ? PollType.COMMUNITY_SPEND
-          : "update_source_priority_list" in decoded
-          ? PollType.UPDATE_PRIORITY
-          : "remove_source" in decoded
-          ? PollType.REMOVE_PRICE
           : PollType.TEXT
 
       const parsed =
@@ -87,6 +83,16 @@ const parsePollQuery = selector({
       }
     }
 
+    const parsePassCommandType = (passCommand: PassCommand) => {
+      const { msg } = passCommand
+      const decodedMsg: PassCommandMsg = fromBase64<PassCommandMsg>(msg)
+      return "update_source_priority_list" in decodedMsg
+        ? PollType.UPDATE_PRIORITY
+        : "remove_source" in decodedMsg
+        ? PollType.REMOVE_PRICE
+        : PollType.MINT_UPDATE
+    }
+
     const parseRevokeCollateral = ({ asset }: RevokeCollateral) => {
       const { symbol } = parseAssetInfo(asset)
       return { contents: parseContents({ asset: symbol }) }
@@ -98,8 +104,37 @@ const parsePollQuery = selector({
     }
 
     const parsePassCommand = ({ msg }: PassCommand) => {
-      const decodedPassCommand = fromBase64<DecodedPassCommandMsg>(msg)
-      return parseUpdateAsset(decodedPassCommand.update_asset)
+      const decodedPassCommand = fromBase64<PassCommandMsg>(msg)
+
+      return "update_asset" in decodedPassCommand
+        ? parseUpdateAsset(decodedPassCommand.update_asset)
+        : "update_source_priority_list" in decodedPassCommand
+        ? parseUpdatePriorityList(
+            decodedPassCommand.update_source_priority_list
+          )
+        : "remove_source" in decodedPassCommand
+        ? parseRemovePrice(decodedPassCommand.remove_source)
+        : {}
+    }
+
+    const parseUpdatePriorityList = (updatePriority: UpdatePriority) => {
+      const { symbol, priority_list } = updatePriority
+      const contents = priority_list
+        .sort(([, prev], [, current]) => prev - current)
+        .map(([addr]) => ({ title: "Address", content: addr }))
+      return {
+        contents: [{ title: "Symbol", content: symbol }, ...contents],
+      }
+    }
+
+    const parseRemovePrice = (removeSource: RemovePrice) => {
+      const { symbol, proxy_addr } = removeSource
+      return {
+        contents: [
+          { title: "Symbol", content: symbol },
+          { title: "Proxy Address", content: proxy_addr },
+        ],
+      }
     }
 
     const parseUpdateAsset = ({ asset_token, ...params }: UpdateAsset) => ({
