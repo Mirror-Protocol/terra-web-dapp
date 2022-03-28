@@ -3,6 +3,7 @@ import { gt, sum } from "../../libs/math"
 import { Poll } from "../../data/gov/poll"
 import Card from "../../components/Card"
 import { Gutter } from "../../components/Grid"
+import FormFeedback from "../../components/FormFeedback"
 import PollHeader from "./PollHeader"
 import PollMeta from "./PollMeta"
 import PollSummary from "./PollSummary"
@@ -17,6 +18,13 @@ const PollDetails = ({ poll }: { poll: Poll }) => {
 
   return !poll ? null : (
     <>
+      {true && (
+        <FormFeedback type="warn">
+          Migration poll is executable anytime after the poll’s quorum and
+          threshold is reached
+        </FormFeedback>
+      )}
+
       <Gutter>
         <Card>
           <PollHeader {...poll} titleClassName={styles.title} />
