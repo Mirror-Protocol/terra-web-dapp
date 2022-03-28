@@ -26,6 +26,10 @@ const PollItem = (poll: Poll) => {
 
         {getVoted(poll.id) && "Voted"}
       </footer>
+
+      <section className={styles.note}>
+        <p>Executed when quorum and threshold are met</p>
+      </section>
     </article>
   )
 }
