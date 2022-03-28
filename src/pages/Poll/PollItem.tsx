@@ -9,6 +9,7 @@ import styles from "./PollItem.module.scss"
 const PollItem = (poll: Poll) => {
   const pollTimeText = usePollTimeText(poll)
   const getVoted = useGetVoted()
+  const { admin_action } = poll
 
   return !poll ? null : (
     <article className={styles.component}>
@@ -27,9 +28,11 @@ const PollItem = (poll: Poll) => {
         {getVoted(poll.id) && "Voted"}
       </footer>
 
-      <section className={styles.note}>
-        <p>Executed when quorum and threshold are met</p>
-      </section>
+      {admin_action && (
+        <section className={styles.note}>
+          <p>Executed when quorum and threshold are met</p>
+        </section>
+      )}
     </article>
   )
 }

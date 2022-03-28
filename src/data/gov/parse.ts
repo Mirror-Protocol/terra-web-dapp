@@ -6,13 +6,7 @@ import { fromBase64 } from "../../libs/formHelpers"
 import { protocolQuery } from "../contract/protocol"
 import { Content } from "../../components/componentTypes"
 import { PollType } from "../../pages/Poll/CreatePoll"
-import {
-  AuthorizeClaim,
-  ExecuteData,
-  ExecuteMigrations,
-  Poll,
-  PollData,
-} from "./poll"
+import { AdminAction, ExecuteData, Poll, PollData } from "./poll"
 
 const parsePollQuery = selector({
   key: "parsePoll",
@@ -22,7 +16,7 @@ const parsePollQuery = selector({
     const parseParams = (
       decoded: DecodedExecuteMsg,
       id: number,
-      adminAction?: ExecuteMigrations | AuthorizeClaim
+      adminAction?: AdminAction
     ) => {
       const type =
         "whitelist" in decoded
@@ -153,7 +147,7 @@ const parsePollQuery = selector({
 
     const parseUpdateConfig = (
       config: Partial<GovConfig>,
-      adminAction?: ExecuteMigrations | AuthorizeClaim
+      adminAction?: AdminAction
     ) => {
       const { effective_delay } = config
       const { voter_weight, owner } = config
@@ -240,7 +234,7 @@ export const getTitle = (title: string) => title.replace(/_/g, " ")
 
 export const getConfig = (
   config: Partial<GovConfig> | GovConfig,
-  adminAction?: ExecuteMigrations | AuthorizeClaim
+  adminAction?: AdminAction
 ) => {
   if (!config) return
 

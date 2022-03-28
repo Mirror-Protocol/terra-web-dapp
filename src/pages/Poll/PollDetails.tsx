@@ -14,11 +14,12 @@ import styles from "./PollDetails.module.scss"
 
 const PollDetails = ({ poll }: { poll: Poll }) => {
   const { params } = useRouteMatch<{ id: string }>()
+  const { admin_action } = poll
   const id = Number(params.id)
 
   return !poll ? null : (
     <>
-      {true && (
+      {admin_action && (
         <FormFeedback type="warn">
           Migration poll is executable anytime after the poll’s quorum and
           threshold is reached

@@ -6,17 +6,19 @@ import { useParsePoll } from "./parse"
 
 type Migrations = [[string, number, string]]
 
-export interface ExecuteMigrations {
+interface ExecuteMigrations {
   execute_migrations: {
     migrations: Migrations
   }
 }
 
-export interface AuthorizeClaim {
+interface AuthorizeClaim {
   authorize_claim: {
     authorized_addr: string
   }
 }
+
+export type AdminAction = ExecuteMigrations | AuthorizeClaim
 
 export interface ExecuteData {
   contract: string
@@ -29,7 +31,7 @@ export interface PollData {
   status: PollStatus
   creator: string
 
-  admin_action?: ExecuteMigrations | AuthorizeClaim
+  admin_action?: AdminAction
 
   deposit_amount: string
 

@@ -4,7 +4,7 @@ import { formatAsset } from "../../libs/parse"
 import { percent } from "../../libs/num"
 import { useGovConfig } from "../../data/gov/config"
 import { useGovState } from "../../data/gov/state"
-import { AuthorizeClaim, ExecuteMigrations, Poll } from "../../data/gov/poll"
+import { AdminAction, Poll } from "../../data/gov/poll"
 import Progress from "../../components/Progress"
 import styles from "./PollVotes.module.scss"
 import { getConfig } from "../../data/gov/parse"
@@ -77,7 +77,7 @@ export const parseVotes = (
   votes: { yes: string; no: string; abstain: string; total: string },
   { ...config }: GovConfig,
   { total_share }: GovState,
-  admin_action?: ExecuteMigrations | AuthorizeClaim
+  admin_action?: AdminAction
 ) => {
   const { total } = votes
   const yes = div(votes["yes"], gt(total, 0) ? total : total_share)
