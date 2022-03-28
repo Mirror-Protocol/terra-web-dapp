@@ -41,6 +41,10 @@ const parsePollQuery = selector({
           ? PollType.COLLATERAL
           : "spend" in decoded
           ? PollType.COMMUNITY_SPEND
+          : "update_source_priority_list" in decoded
+          ? PollType.UPDATE_PRIORITY
+          : "remove_source" in decoded
+          ? PollType.REMOVE_PRICE
           : PollType.TEXT
 
       const parsed =
