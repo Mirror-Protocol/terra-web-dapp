@@ -5,7 +5,7 @@ import { formatAsset } from "../../libs/parse"
 import { fromBase64 } from "../../libs/formHelpers"
 import { protocolQuery } from "../contract/protocol"
 import { Content } from "../../components/componentTypes"
-import { PollType } from "../../pages/Poll/CreatePoll"
+import { PollType, ViewOnlyPollType } from "../../pages/Poll/CreatePoll"
 import { AdminAction, ExecuteData, Poll, PollData } from "./poll"
 
 const parsePollQuery = selector({
@@ -200,7 +200,15 @@ const parsePollQuery = selector({
           const parsed = parseParams(decoded, poll.id, poll.admin_action)
           return { ...poll, ...parsed }
         } else {
-          return { ...poll, type: PollType.TEXT }
+          const { admin_action } = poll
+          const type = admin_action
+            ? "execute_migrations" in admin_action
+              ? ViewOnlyPollType.MIGRATION
+              : "authorize_claim" in admin_action
+              ? ViewOnlyPollType.AUTHORIZE
+              : PollType.TEXT
+            : PollType.TEXT
+          return { ...poll, type }
         }
       } catch (error) {
         return poll

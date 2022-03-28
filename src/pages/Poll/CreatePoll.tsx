@@ -24,6 +24,11 @@ export enum PollType {
   REMOVE_PRICE = "REMOVE-PRICE",
 }
 
+export enum ViewOnlyPollType {
+  MIGRATION = "MIGRATION",
+  AUTHORIZE = "AUTHORIZE",
+}
+
 const Groups = [
   {
     title: "Suggestions",
