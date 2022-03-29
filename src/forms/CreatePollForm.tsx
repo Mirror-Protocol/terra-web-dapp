@@ -336,8 +336,10 @@ const CreatePollForm = ({ type, headings }: Props) => {
   const { effectiveDelay, proposalDeposit } = values
   const { voterWeight, multiplier, recipient, amount } = values
 
-  const deposit = config?.default_poll_config.proposal_deposit ?? "0"
-  const authDeposit = config?.auth_admin_poll_config.proposal_deposit ?? "0"
+  const deposit =
+    type === PollType.GOV_UPDATE
+      ? config?.auth_admin_poll_config.proposal_deposit ?? "0"
+      : config?.default_poll_config.proposal_deposit ?? "0"
 
   /* query: oracle feeder */
   const lcd = useLCDClient()
@@ -447,11 +449,7 @@ const CreatePollForm = ({ type, headings }: Props) => {
     deposit: {
       help: renderBalance(findBalance(getToken("MIR")), "MIR"),
       label: <TooltipIcon content={Tooltips.Gov.Deposit}>Deposit</TooltipIcon>,
-      value: (
-        <Formatted symbol="MIR">
-          {type === PollType.GOV_UPDATE ? authDeposit : deposit}
-        </Formatted>
-      ),
+      value: <Formatted symbol="MIR">{deposit}</Formatted>,
     },
 
     ...getFields({
@@ -920,11 +918,7 @@ const CreatePollForm = ({ type, headings }: Props) => {
 
   const data = [
     newContractMsg(mirrorToken, {
-      send: {
-        amount: admin_action ? authDeposit : deposit,
-        contract: gov,
-        msg,
-      },
+      send: { amount: deposit, contract: gov, msg },
     }),
   ]
 
