@@ -11,6 +11,15 @@ const PollItem = (poll: Poll) => {
   const getVoted = useGetVoted()
   const { admin_action } = poll
 
+  const desc =
+    admin_action &&
+    ("execute_migrations" in admin_action ||
+    "authorize_claim" in admin_action ? (
+      <section className={styles.note}>
+        <p>Executed when quorum and threshold are met</p>
+      </section>
+    ) : undefined)
+
   return !poll ? null : (
     <article className={styles.component}>
       <section className={styles.main}>
@@ -28,11 +37,7 @@ const PollItem = (poll: Poll) => {
         {getVoted(poll.id) && "Voted"}
       </footer>
 
-      {admin_action && (
-        <section className={styles.note}>
-          <p>Executed when quorum and threshold are met</p>
-        </section>
-      )}
+      {desc}
     </article>
   )
 }

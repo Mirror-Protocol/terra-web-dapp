@@ -214,13 +214,16 @@ const parsePollQuery = selector({
           return { ...poll, ...parsed }
         } else {
           const { admin_action } = poll
-          const type = admin_action
-            ? "execute_migrations" in admin_action
+          if (!admin_action) return { ...poll, type: PollType.TEXT }
+
+          const type =
+            "execute_migrations" in admin_action
               ? ViewOnlyPollType.MIGRATION
               : "authorize_claim" in admin_action
               ? ViewOnlyPollType.AUTHORIZE
+              : "update_config" in admin_action
+              ? PollType.GOV_UPDATE
               : PollType.TEXT
-            : PollType.TEXT
           return { ...poll, type }
         }
       } catch (error) {

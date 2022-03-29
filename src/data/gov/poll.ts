@@ -18,7 +18,11 @@ interface AuthorizeClaim {
   }
 }
 
-export type AdminAction = ExecuteMigrations | AuthorizeClaim
+interface UpdateConfig {
+  update_config: GovConfig
+}
+
+export type AdminAction = ExecuteMigrations | AuthorizeClaim | UpdateConfig
 
 export interface ExecuteData {
   contract: string
