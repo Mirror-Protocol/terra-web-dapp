@@ -220,9 +220,11 @@ const CreatePollForm = ({ type, headings }: Props) => {
     const { listed, reference } = values
 
     const paramRange = {
-      optional: [PollType.MINT_UPDATE, PollType.GOV_PARAM_UPDATE].includes(
-        type
-      ),
+      optional: [
+        PollType.MINT_UPDATE,
+        PollType.POLL_PARAM_UPDATE,
+        PollType.GOV_PARAM_UPDATE,
+      ].includes(type),
       max: "100",
     }
 
@@ -790,6 +792,7 @@ const CreatePollForm = ({ type, headings }: Props) => {
     voter_weight: voterWeight || undefined,
   }
 
+  /* Type.POLL_PARAM_UPDATE */
   const pollParamUpdateConfig = {
     owner,
     default_poll_config: {

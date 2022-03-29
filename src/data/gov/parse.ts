@@ -70,9 +70,10 @@ const parsePollQuery = selector({
           : "authorize_claim" in adminAction
           ? ViewOnlyPollType.AUTHORIZE
           : "update_config" in adminAction
-          ? adminAction.update_config.default_poll_config
-            ? PollType.POLL_PARAM_UPDATE
-            : PollType.GOV_PARAM_UPDATE
+          ? adminAction.update_config.voter_weight ||
+            adminAction.update_config.effective_delay
+            ? PollType.GOV_PARAM_UPDATE
+            : PollType.POLL_PARAM_UPDATE
           : PollType.TEXT
 
       const parsed =
