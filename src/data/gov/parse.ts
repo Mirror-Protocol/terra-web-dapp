@@ -123,6 +123,7 @@ const parsePollQuery = selector({
           ...parseContents({
             name: whitelist.name,
             symbol: whitelist.symbol,
+            oracle_feeder: whitelist.oracle_feeder,
             oracle_provider: provider,
           }),
           ...parseContents(rest, { format: percent }),
