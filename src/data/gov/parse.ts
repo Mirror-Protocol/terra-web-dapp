@@ -63,6 +63,53 @@ const parsePollQuery = selector({
       return { type, ...parsed }
     }
 
+    const parseAdminAction = (adminAction: AdminAction) => {
+      const type =
+        "execute_migrations" in adminAction
+          ? ViewOnlyPollType.MIGRATION
+          : "authorize_claim" in adminAction
+          ? ViewOnlyPollType.AUTHORIZE
+          : "update_config" in adminAction
+          ? PollType.GOV_UPDATE
+          : PollType.TEXT
+
+      const parsed =
+        "update_config" in adminAction
+          ? parseAdminActionUpdateConfig(adminAction.update_config)
+          : {}
+
+      return { type, ...parsed }
+    }
+
+    const parseAdminActionUpdateConfig = (config: GovConfig) => {
+      const { effective_delay, voter_weight, owner } = config
+      const { auth_admin_poll_config, default_poll_config } = config
+      const { migration_poll_config } = config
+
+      const configData =
+        migration_poll_config || auth_admin_poll_config || default_poll_config
+
+      const voting_period = configData?.voting_period
+      const proposal_deposit = configData?.proposal_deposit
+      const quorum = configData?.quorum
+      const threshold = configData?.threshold
+
+      return {
+        contents: [
+          ...parseContents({
+            owner,
+            voting_period: getBlocks(voting_period),
+            effective_delay: getBlocks(effective_delay),
+            proposal_deposit: proposal_deposit
+              ? formatAsset(proposal_deposit, "MIR")
+              : undefined,
+            voter_weight,
+          }),
+          ...parseContents({ quorum, threshold }, { format: percent }),
+        ],
+      }
+    }
+
     const parseWhitelist = ({ params, ...whitelist }: Whitelist) => {
       const { mint_period, pre_ipo_price, ...rest } = params
 
@@ -216,15 +263,8 @@ const parsePollQuery = selector({
           const { admin_action } = poll
           if (!admin_action) return { ...poll, type: PollType.TEXT }
 
-          const type =
-            "execute_migrations" in admin_action
-              ? ViewOnlyPollType.MIGRATION
-              : "authorize_claim" in admin_action
-              ? ViewOnlyPollType.AUTHORIZE
-              : "update_config" in admin_action
-              ? PollType.GOV_UPDATE
-              : PollType.TEXT
-          return { ...poll, type }
+          const parsed = parseAdminAction(admin_action)
+          return { ...poll, ...parsed }
         }
       } catch (error) {
         return poll

@@ -4,10 +4,10 @@ import { formatAsset } from "../../libs/parse"
 import { percent } from "../../libs/num"
 import { useGovConfig } from "../../data/gov/config"
 import { useGovState } from "../../data/gov/state"
+import { getConfig } from "../../data/gov/parse"
 import { AdminAction, Poll } from "../../data/gov/poll"
 import Progress from "../../components/Progress"
 import styles from "./PollVotes.module.scss"
-import { getConfig } from "../../data/gov/parse"
 
 interface Item {
   label: string

@@ -337,6 +337,7 @@ const CreatePollForm = ({ type, headings }: Props) => {
   const { voterWeight, multiplier, recipient, amount } = values
 
   const deposit = config?.default_poll_config.proposal_deposit ?? "0"
+  const authDeposit = config?.auth_admin_poll_config.proposal_deposit ?? "0"
 
   /* query: oracle feeder */
   const lcd = useLCDClient()
@@ -425,12 +426,13 @@ const CreatePollForm = ({ type, headings }: Props) => {
 
   const configPlaceholders = {
     [Key.owner]: config?.owner ?? "",
-    [Key.quorum]: times(config?.default_poll_config.quorum, 100),
-    [Key.threshold]: times(config?.default_poll_config.threshold, 100),
-    [Key.votingPeriod]: String(config?.default_poll_config.voting_period) ?? "",
+    [Key.quorum]: times(config?.auth_admin_poll_config.quorum, 100),
+    [Key.threshold]: times(config?.auth_admin_poll_config.threshold, 100),
+    [Key.votingPeriod]:
+      String(config?.auth_admin_poll_config.voting_period) ?? "",
     [Key.effectiveDelay]: String(config?.effective_delay) ?? "",
     [Key.proposalDeposit]:
-      lookup(config?.default_poll_config.proposal_deposit, "MIR") ?? "",
+      lookup(config?.auth_admin_poll_config.proposal_deposit, "MIR") ?? "",
     [Key.voterWeight]: config?.voter_weight ?? "",
   }
 
@@ -445,7 +447,11 @@ const CreatePollForm = ({ type, headings }: Props) => {
     deposit: {
       help: renderBalance(findBalance(getToken("MIR")), "MIR"),
       label: <TooltipIcon content={Tooltips.Gov.Deposit}>Deposit</TooltipIcon>,
-      value: <Formatted symbol="MIR">{deposit}</Formatted>,
+      value: (
+        <Formatted symbol="MIR">
+          {type === PollType.GOV_UPDATE ? authDeposit : deposit}
+        </Formatted>
+      ),
     },
 
     ...getFields({
@@ -778,11 +784,21 @@ const CreatePollForm = ({ type, headings }: Props) => {
   /* Type.GOV_UPDATE */
   const govUpdateConfig = {
     owner,
-    quorum: quorum ? div(quorum, 100) : undefined,
-    threshold: threshold ? div(threshold, 100) : undefined,
-    voting_period: votingPeriod ? Number(votingPeriod) : undefined,
+    default_poll_config: {
+      proposal_deposit: proposalDeposit
+        ? toAmount(proposalDeposit)
+        : config?.default_poll_config.proposal_deposit,
+      voting_period: votingPeriod
+        ? Number(votingPeriod)
+        : config?.default_poll_config.voting_period,
+      quorum: quorum ? div(quorum, 100) : config?.default_poll_config.quorum,
+      threshold: threshold
+        ? div(threshold, 100)
+        : config?.default_poll_config.threshold,
+    },
+    migration_poll_config: null,
+    auth_admin_poll_config: null,
     effective_delay: effectiveDelay ? Number(effectiveDelay) : undefined,
-    proposal_deposit: proposalDeposit ? toAmount(proposalDeposit) : undefined,
     voter_weight: voterWeight || undefined,
   }
 
@@ -828,10 +844,28 @@ const CreatePollForm = ({ type, headings }: Props) => {
     msg: toBase64({ remove_source: removeSource }),
   }
 
+  const admin_action = {
+    [PollType.GOV_UPDATE]: { update_config: govUpdateConfig },
+    [PollType.TEXT]: undefined,
+    [PollType.TEXT_WHITELIST]: undefined,
+    [PollType.TEXT_PREIPO]: undefined,
+    [PollType.PREIPO]: undefined,
+    [PollType.WHITELIST]: undefined,
+    [PollType.DELIST_ASSET]: undefined,
+    [PollType.DELIST_COLLATERAL]: undefined,
+    [PollType.COMMUNITY_SPEND]: undefined,
+    [PollType.MINT_UPDATE]: undefined,
+    [PollType.COLLATERAL]: undefined,
+    [PollType.UPDATE_PRIORITY]: undefined,
+    [PollType.REMOVE_PRICE]: undefined,
+    [PollType.INFLATION]: undefined,
+  }[type]
+
   const execute_msg = {
     [PollType.TEXT]: undefined,
     [PollType.TEXT_WHITELIST]: undefined,
     [PollType.TEXT_PREIPO]: undefined,
+    [PollType.GOV_UPDATE]: undefined,
     [PollType.WHITELIST]: {
       contract: factory,
       msg: toBase64({ whitelist: whitelistMessage }),
@@ -855,10 +889,6 @@ const CreatePollForm = ({ type, headings }: Props) => {
     [PollType.MINT_UPDATE]: {
       contract: factory,
       msg: toBase64({ pass_command: mintPassCommand }),
-    },
-    [PollType.GOV_UPDATE]: {
-      contract: gov,
-      msg: toBase64({ update_config: govUpdateConfig }),
     },
     [PollType.COLLATERAL]: {
       contract: collateralOracle,
@@ -885,12 +915,16 @@ const CreatePollForm = ({ type, headings }: Props) => {
   }[type]
 
   const msg = toBase64({
-    create_poll: { title, description, link, execute_msg },
+    create_poll: { title, description, link, execute_msg, admin_action },
   })
 
   const data = [
     newContractMsg(mirrorToken, {
-      send: { amount: deposit, contract: gov, msg },
+      send: {
+        amount: admin_action ? authDeposit : deposit,
+        contract: gov,
+        msg,
+      },
     }),
   ]
 
