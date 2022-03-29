@@ -17,7 +17,8 @@ export enum PollType {
   DELIST_ASSET = "DELIST-ASSET",
   INFLATION = "INFLATION",
   MINT_UPDATE = "MINT-UPDATE",
-  GOV_UPDATE = "GOV-UPDATE",
+  GOV_PARAM_UPDATE = "GOV-PARAM-UPDATE",
+  POLL_PARAM_UPDATE = "POLL-PARAM-UPDATE",
   COLLATERAL = "COLLATERAL",
   COMMUNITY_SPEND = "COMMUNITY-SPEND",
   UPDATE_PRIORITY = "UPDATE-PRIORITY",
@@ -54,7 +55,12 @@ const Groups = [
   },
   {
     title: "Parameters",
-    items: [PollType.MINT_UPDATE, PollType.GOV_UPDATE, PollType.COLLATERAL],
+    items: [
+      PollType.MINT_UPDATE,
+      PollType.GOV_PARAM_UPDATE,
+      PollType.POLL_PARAM_UPDATE,
+      PollType.COLLATERAL,
+    ],
   },
   {
     title: "Price Oracle",
@@ -103,9 +109,13 @@ const polls: Record<PollType, { title: string; desc: string }> = {
     title: "Modify mint parameters",
     desc: "Modify the mint parameters of an existing mAsset",
   },
-  [PollType.GOV_UPDATE]: {
+  [PollType.GOV_PARAM_UPDATE]: {
     title: "Modify governance parameters",
     desc: "Modify the governance parameters",
+  },
+  [PollType.POLL_PARAM_UPDATE]: {
+    title: "Modify poll parameters",
+    desc: "Modify the poll parameters",
   },
   [PollType.COLLATERAL]: {
     title: "Modify collateral parameters",

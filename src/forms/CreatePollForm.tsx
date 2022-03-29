@@ -162,14 +162,17 @@ const CreatePollForm = ({ type, headings }: Props) => {
         Key.auctionDiscount,
         Key.minCollateralRatio,
       ],
-      [PollType.GOV_UPDATE]: [
+      [PollType.GOV_PARAM_UPDATE]: [
+        ...defaultKeys,
+        Key.effectiveDelay,
+        Key.voterWeight,
+      ],
+      [PollType.POLL_PARAM_UPDATE]: [
         ...defaultKeys,
         Key.quorum,
         Key.threshold,
         Key.votingPeriod,
-        Key.effectiveDelay,
         Key.proposalDeposit,
-        Key.voterWeight,
       ],
       [PollType.COLLATERAL]: [
         ...defaultKeys,
@@ -217,7 +220,9 @@ const CreatePollForm = ({ type, headings }: Props) => {
     const { listed, reference } = values
 
     const paramRange = {
-      optional: [PollType.MINT_UPDATE, PollType.GOV_UPDATE].includes(type),
+      optional: [PollType.MINT_UPDATE, PollType.GOV_PARAM_UPDATE].includes(
+        type
+      ),
       max: "100",
     }
 
@@ -337,7 +342,7 @@ const CreatePollForm = ({ type, headings }: Props) => {
   const { voterWeight, multiplier, recipient, amount } = values
 
   const deposit =
-    type === PollType.GOV_UPDATE
+    type === PollType.GOV_PARAM_UPDATE || type === PollType.POLL_PARAM_UPDATE
       ? config?.auth_admin_poll_config.proposal_deposit ?? "0"
       : config?.default_poll_config.proposal_deposit ?? "0"
 
@@ -428,13 +433,12 @@ const CreatePollForm = ({ type, headings }: Props) => {
 
   const configPlaceholders = {
     [Key.owner]: config?.owner ?? "",
-    [Key.quorum]: times(config?.auth_admin_poll_config.quorum, 100),
-    [Key.threshold]: times(config?.auth_admin_poll_config.threshold, 100),
-    [Key.votingPeriod]:
-      String(config?.auth_admin_poll_config.voting_period) ?? "",
+    [Key.quorum]: times(config?.default_poll_config.quorum, 100),
+    [Key.threshold]: times(config?.default_poll_config.threshold, 100),
+    [Key.votingPeriod]: String(config?.default_poll_config.voting_period) ?? "",
     [Key.effectiveDelay]: String(config?.effective_delay) ?? "",
     [Key.proposalDeposit]:
-      lookup(config?.auth_admin_poll_config.proposal_deposit, "MIR") ?? "",
+      lookup(config?.default_poll_config.proposal_deposit, "MIR") ?? "",
     [Key.voterWeight]: config?.voter_weight ?? "",
   }
 
@@ -779,8 +783,14 @@ const CreatePollForm = ({ type, headings }: Props) => {
     }),
   }
 
-  /* Type.GOV_UPDATE */
-  const govUpdateConfig = {
+  /* Type.GOV_PARAM_UPDATE */
+  const govParamUpdateConfig = {
+    owner,
+    effective_delay: effectiveDelay ? Number(effectiveDelay) : undefined,
+    voter_weight: voterWeight || undefined,
+  }
+
+  const pollParamUpdateConfig = {
     owner,
     default_poll_config: {
       proposal_deposit: proposalDeposit
@@ -796,8 +806,6 @@ const CreatePollForm = ({ type, headings }: Props) => {
     },
     migration_poll_config: null,
     auth_admin_poll_config: null,
-    effective_delay: effectiveDelay ? Number(effectiveDelay) : undefined,
-    voter_weight: voterWeight || undefined,
   }
 
   /* Type.COLLATERL */
@@ -843,7 +851,8 @@ const CreatePollForm = ({ type, headings }: Props) => {
   }
 
   const admin_action = {
-    [PollType.GOV_UPDATE]: { update_config: govUpdateConfig },
+    [PollType.GOV_PARAM_UPDATE]: { update_config: govParamUpdateConfig },
+    [PollType.POLL_PARAM_UPDATE]: { update_config: pollParamUpdateConfig },
     [PollType.TEXT]: undefined,
     [PollType.TEXT_WHITELIST]: undefined,
     [PollType.TEXT_PREIPO]: undefined,
@@ -863,7 +872,8 @@ const CreatePollForm = ({ type, headings }: Props) => {
     [PollType.TEXT]: undefined,
     [PollType.TEXT_WHITELIST]: undefined,
     [PollType.TEXT_PREIPO]: undefined,
-    [PollType.GOV_UPDATE]: undefined,
+    [PollType.GOV_PARAM_UPDATE]: undefined,
+    [PollType.POLL_PARAM_UPDATE]: undefined,
     [PollType.WHITELIST]: {
       contract: factory,
       msg: toBase64({ whitelist: whitelistMessage }),
@@ -926,8 +936,8 @@ const CreatePollForm = ({ type, headings }: Props) => {
     ? ["Insufficient balance"]
     : getLength(msg) > MAX_MSG_LENGTH
     ? ["Input is too long to be executed"]
-    : type === PollType.GOV_UPDATE &&
-      Object.values(govUpdateConfig).filter(Boolean).length > 1
+    : type === PollType.GOV_PARAM_UPDATE &&
+      Object.values(govParamUpdateConfig).filter(Boolean).length > 1
     ? ["Only one governance parameter can be modified at a time."]
     : type === PollType.UPDATE_PRIORITY && proxiedItem
     ? ["There is only one price source"]

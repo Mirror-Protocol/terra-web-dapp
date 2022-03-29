@@ -20,6 +20,7 @@ interface Whitelist {
   name: string
   symbol: string
   oracle_feeder: string
+  oracle_proxy: string
   params: AssetParams
 }
 

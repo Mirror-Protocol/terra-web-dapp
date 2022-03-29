@@ -32,7 +32,7 @@ const parsePollQuery = selector({
           : "update_weight" in decoded
           ? PollType.INFLATION
           : "update_config" in decoded
-          ? PollType.GOV_UPDATE
+          ? PollType.GOV_PARAM_UPDATE
           : "update_collateral_multiplier" in decoded
           ? PollType.COLLATERAL
           : "spend" in decoded
@@ -70,7 +70,9 @@ const parsePollQuery = selector({
           : "authorize_claim" in adminAction
           ? ViewOnlyPollType.AUTHORIZE
           : "update_config" in adminAction
-          ? PollType.GOV_UPDATE
+          ? adminAction.update_config.default_poll_config
+            ? PollType.POLL_PARAM_UPDATE
+            : PollType.GOV_PARAM_UPDATE
           : PollType.TEXT
 
       const parsed =
@@ -98,11 +100,6 @@ const parsePollQuery = selector({
         contents: [
           ...parseContents({
             owner,
-            config: auth_admin_poll_config
-              ? "Auth admin poll config"
-              : migration_poll_config
-              ? "Migration poll config"
-              : "Default poll config",
             voting_period: getBlocks(voting_period),
             effective_delay: getBlocks(effective_delay),
             proposal_deposit: proposal_deposit
@@ -117,10 +114,16 @@ const parsePollQuery = selector({
 
     const parseWhitelist = ({ params, ...whitelist }: Whitelist) => {
       const { mint_period, pre_ipo_price, ...rest } = params
+      const { oracle_proxy } = whitelist
+      const provider = parseProxyAddress(oracle_proxy)
 
       return {
         contents: [
-          ...parseContents(whitelist),
+          ...parseContents({
+            name: whitelist.name,
+            symbol: whitelist.symbol,
+            oracle_provider: provider,
+          }),
           ...parseContents(rest, { format: percent }),
           ...parseContents({ mint_period }, { unit: "Seconds" }),
           ...parseContents(
