@@ -98,6 +98,11 @@ const parsePollQuery = selector({
         contents: [
           ...parseContents({
             owner,
+            config: auth_admin_poll_config
+              ? "Auth admin poll config"
+              : migration_poll_config
+              ? "Migration poll config"
+              : "Default poll config",
             voting_period: getBlocks(voting_period),
             effective_delay: getBlocks(effective_delay),
             proposal_deposit: proposal_deposit
@@ -166,7 +171,7 @@ const parsePollQuery = selector({
         .sort(([, prev], [, current]) => prev - current)
         .map(([addr]) => {
           const proxy = parseProxyAddress(addr)
-          return { title: "Address", content: proxy }
+          return { title: "Oracle Provider", content: proxy }
         })
       return {
         contents: [{ title: "Symbol", content: symbol }, ...contents],
@@ -179,7 +184,7 @@ const parsePollQuery = selector({
       return {
         contents: [
           { title: "Symbol", content: symbol },
-          { title: "Proxy", content: proxy },
+          { title: "Oracle Provider", content: proxy },
         ],
       }
     }
@@ -309,7 +314,7 @@ export const getConfig = (
   const poll_config = adminAction
     ? "execute_migrations" in adminAction
       ? migration_poll_config
-      : "authorize_claim" in adminAction
+      : "authorize_claim" in adminAction || "update_config" in adminAction
       ? auth_admin_poll_config
       : default_poll_config
     : default_poll_config
