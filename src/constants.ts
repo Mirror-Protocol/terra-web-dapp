@@ -1,6 +1,3 @@
-// TODO: Deprecate on deployment
-export const ORACLE_HUB = "terra1sdr3rya4h039f4htfm42q44x3dlaxra7hc7p8e"
-
 /* terra:network */
 export const FINDER = "https://finder.terra.money"
 export const EXTENSION = "https://terra.money/extension"

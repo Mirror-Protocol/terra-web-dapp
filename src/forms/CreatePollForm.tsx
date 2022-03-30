@@ -6,7 +6,7 @@ import { AccAddress } from "@terra-money/terra.js"
 
 import useNewContractMsg from "../libs/useNewContractMsg"
 import Tooltips from "../lang/Tooltips"
-import { MAX_MSG_LENGTH, ORACLE_HUB } from "../constants"
+import { MAX_MSG_LENGTH } from "../constants"
 import { div, gte, number, times } from "../libs/math"
 import { record, getLength } from "../libs/utils"
 import { lookup, toAmount } from "../libs/parse"
@@ -363,10 +363,10 @@ const CreatePollForm = ({ type, headings }: Props) => {
       if (ticker) {
         const { proxies } = await lcd.wasm.contractQuery<{
           proxies: ProxyItem[]
-        }>(ORACLE_HUB, { proxy_whitelist: {} })
+        }>(contracts["oracleHub"], { proxy_whitelist: {} })
 
         const checkSource = async (proxy_addr: AccAddress) =>
-          await lcd.wasm.contractQuery<Rate>(ORACLE_HUB, {
+          await lcd.wasm.contractQuery<Rate>(contracts["oracleHub"], {
             check_source: { proxy_addr, symbol: ticker },
           })
 
@@ -382,7 +382,7 @@ const CreatePollForm = ({ type, headings }: Props) => {
         return proxies.filter((_, index) => sources[index])
       } else {
         const data = await lcd.wasm.contractQuery<{ price_list: PriceItem[] }>(
-          ORACLE_HUB,
+          contracts["oracleHub"],
           { price_list: { asset_token: asset } }
         )
 
@@ -838,7 +838,7 @@ const CreatePollForm = ({ type, headings }: Props) => {
   }
 
   const updatePriorityPassCommand = {
-    contract_addr: ORACLE_HUB,
+    contract_addr: contracts["oracleHub"],
     msg: toBase64({ update_source_priority_list: updateSourcePriorityList }),
   }
 
@@ -849,7 +849,7 @@ const CreatePollForm = ({ type, headings }: Props) => {
   }
 
   const removePricePassCommand = {
-    contract_addr: ORACLE_HUB,
+    contract_addr: contracts["oracleHub"],
     msg: toBase64({ remove_source: removeSource }),
   }
 

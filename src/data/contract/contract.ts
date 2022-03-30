@@ -4,7 +4,6 @@ import { getListedContractQueriesQuery } from "../utils/queries"
 import { getContractQueryQuery } from "../utils/query"
 import { priceKeyIndexState } from "../app"
 import { addressState } from "../wallet"
-import { ORACLE_HUB } from "../../constants"
 import { protocolQuery } from "./protocol"
 
 export const pairPoolQuery = selector({
@@ -27,15 +26,14 @@ const pairPoolState = atom<Dictionary<PairPool> | undefined>({
 export const oraclePriceQuery = selector({
   key: "oraclePrice",
   get: async ({ get }) => {
-    //const { contracts } = get(protocolQuery)
+    const { contracts } = get(protocolQuery)
     const getListedContractQueries = get(getListedContractQueriesQuery)
     return await getListedContractQueries<Rate>(
       ({ token, symbol }) =>
         symbol === "MIR"
           ? undefined
           : {
-              //TODO: contracts["oracleHub"]
-              contract: ORACLE_HUB,
+              contract: contracts["oracleHub"],
               msg: { price: { asset_token: token } },
             },
       "oraclePrice"
