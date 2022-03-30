@@ -517,7 +517,7 @@ const CreatePollForm = ({ type, headings }: Props) => {
 
       // Type.WHITELIST
       [Key.oracle]: {
-        label: "Oracle proxy",
+        label: "Oracle Privider",
         value:
           fieldKeys.includes(Key.ticker) && !ticker
             ? "Enter ticker to find options"
