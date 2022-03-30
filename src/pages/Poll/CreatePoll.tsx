@@ -28,6 +28,7 @@ export enum PollType {
 export enum ViewOnlyPollType {
   MIGRATION = "MIGRATION",
   AUTHORIZE = "AUTHORIZE",
+  WHITELIST_ORACLE = "WHITELIST-ORACLE",
 }
 
 const Groups = [

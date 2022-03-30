@@ -143,7 +143,11 @@ const parsePollQuery = selector({
         ? PollType.UPDATE_PRIORITY
         : "remove_source" in decodedMsg
         ? PollType.REMOVE_PRICE
-        : PollType.MINT_UPDATE
+        : "whitelist_proxy" in decodedMsg
+        ? ViewOnlyPollType.WHITELIST_ORACLE
+        : "update_asset"
+        ? PollType.MINT_UPDATE
+        : PollType.TEXT
     }
 
     const parseRevokeCollateral = ({ asset }: RevokeCollateral) => {
@@ -167,7 +171,19 @@ const parsePollQuery = selector({
           )
         : "remove_source" in decodedPassCommand
         ? parseRemovePrice(decodedPassCommand.remove_source)
+        : "whitelist_proxy" in decodedPassCommand
+        ? parseWhitelistProxy(decodedPassCommand.whitelist_proxy)
         : {}
+    }
+
+    const parseWhitelistProxy = (proxy: WhitelistProxy) => {
+      const { proxy_addr, provider_name } = proxy
+      return {
+        contents: [
+          ...parseContents({ proxy_address: proxy_addr }),
+          ...parseContents({ oracle_provider: provider_name }),
+        ],
+      }
     }
 
     const parseUpdatePriorityList = (updatePriority: UpdatePriority) => {
@@ -176,10 +192,13 @@ const parsePollQuery = selector({
         .sort(([, prev], [, current]) => prev - current)
         .map(([addr]) => {
           const proxy = parseProxyAddress(addr)
-          return { title: "Oracle Provider", content: proxy }
+          return { oracle_provider: proxy }
         })
       return {
-        contents: [{ title: "Symbol", content: symbol }, ...contents],
+        contents: [
+          ...parseContents({ symbol }),
+          ...contents.map((content) => parseContents(content)).flat(),
+        ],
       }
     }
 
@@ -187,10 +206,7 @@ const parsePollQuery = selector({
       const { symbol, proxy_addr } = removeSource
       const proxy = parseProxyAddress(proxy_addr)
       return {
-        contents: [
-          { title: "Symbol", content: symbol },
-          { title: "Oracle Provider", content: proxy },
-        ],
+        contents: [...parseContents({ symbol, oracle_provider: proxy })],
       }
     }
 

@@ -91,6 +91,9 @@ const CreatePollForm = ({ type, headings }: Props) => {
     getDistributionWeightQuery
   )
 
+  const { mirrorToken, mint, collateralOracle } = contracts
+  const { factory, community, gov, oracleHub } = contracts
+
   const spend_limit =
     communityConfig.state === "hasValue"
       ? communityConfig.contents?.spend_limit
@@ -363,10 +366,10 @@ const CreatePollForm = ({ type, headings }: Props) => {
       if (ticker) {
         const { proxies } = await lcd.wasm.contractQuery<{
           proxies: ProxyItem[]
-        }>(contracts["oracleHub"], { proxy_whitelist: {} })
+        }>(oracleHub, { proxy_whitelist: {} })
 
         const checkSource = async (proxy_addr: AccAddress) =>
-          await lcd.wasm.contractQuery<Rate>(contracts["oracleHub"], {
+          await lcd.wasm.contractQuery<Rate>(oracleHub, {
             check_source: { proxy_addr, symbol: ticker },
           })
 
@@ -382,7 +385,7 @@ const CreatePollForm = ({ type, headings }: Props) => {
         return proxies.filter((_, index) => sources[index])
       } else {
         const data = await lcd.wasm.contractQuery<{ price_list: PriceItem[] }>(
-          contracts["oracleHub"],
+          oracleHub,
           { price_list: { asset_token: asset } }
         )
 
@@ -627,7 +630,7 @@ const CreatePollForm = ({ type, headings }: Props) => {
         unitAfterValue: true,
       },
 
-      // Type.GOV_UPDATE
+      // Type.GOV-PARAM-UPDATE, Type.POLL-PARAM-UPDATE
       [Key.owner]: {
         label: "Owner (Optional)",
         input: { placeholder: configPlaceholders[Key.owner] },
@@ -735,8 +738,6 @@ const CreatePollForm = ({ type, headings }: Props) => {
   /* submit */
   const newContractMsg = useNewContractMsg()
   const token = asset
-  const { mirrorToken, mint, gov, factory, community, collateralOracle } =
-    contracts
 
   /* Type.WHITELIST */
   const whitelistMessage = {
@@ -838,7 +839,7 @@ const CreatePollForm = ({ type, headings }: Props) => {
   }
 
   const updatePriorityPassCommand = {
-    contract_addr: contracts["oracleHub"],
+    contract_addr: oracleHub,
     msg: toBase64({ update_source_priority_list: updateSourcePriorityList }),
   }
 
@@ -849,7 +850,7 @@ const CreatePollForm = ({ type, headings }: Props) => {
   }
 
   const removePricePassCommand = {
-    contract_addr: contracts["oracleHub"],
+    contract_addr: oracleHub,
     msg: toBase64({ remove_source: removeSource }),
   }
 

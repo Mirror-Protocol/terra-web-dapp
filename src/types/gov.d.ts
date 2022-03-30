@@ -15,6 +15,7 @@ type PassCommandMsg =
   | { update_asset: UpdateAsset }
   | { update_source_priority_list: UpdatePriority }
   | { remove_source: RemovePrice }
+  | { whitelist_proxy: WhitelistProxy }
 
 interface Whitelist {
   name: string
@@ -58,6 +59,11 @@ interface UpdatePriority {
 interface RemovePrice {
   symbol: string
   proxy_addr: string
+}
+
+interface WhitelistProxy {
+  proxy_addr: string
+  provider_name: string
 }
 
 interface PassCommand {
