@@ -1,4 +1,8 @@
+import { useEffect, useState } from "react"
+import { useQuery } from "react-query"
 import { useRecoilValueLoadable } from "recoil"
+import { useLCDClient } from "@terra-money/wallet-provider"
+import { AccAddress } from "@terra-money/terra.js"
 
 import useNewContractMsg from "../libs/useNewContractMsg"
 import Tooltips from "../lang/Tooltips"
@@ -16,6 +20,7 @@ import { useGovConfig } from "../data/gov/config"
 import { communityConfigQuery } from "../data/contract/info"
 import { getDistributionWeightQuery } from "../data/contract/info"
 import { mintAssetConfigQuery } from "../data/contract/contract"
+import { ProxyItem } from "../data/contract/proxy"
 
 import { TooltipIcon } from "../components/Tooltip"
 import FormGroup from "../components/FormGroup"
@@ -24,6 +29,7 @@ import { PollType } from "../pages/Poll/CreatePoll"
 import useGovReceipt from "./receipts/useGovReceipt"
 import useSelectAsset, { Config } from "./modules/useSelectAsset"
 import FormContainer from "./modules/FormContainer"
+import Sortable from "./modules/Sortable"
 import styles from "./CreatePollForm.module.scss"
 
 enum Key {
@@ -38,7 +44,6 @@ enum Key {
   suggestedOracle = "suggestedOracle",
 
   /* Type.WHITELIST */
-  symbol = "symbol",
   reference = "reference",
   oracle = "oracle",
   weight = "weight",
@@ -76,7 +81,7 @@ interface Props {
 
 const CreatePollForm = ({ type, headings }: Props) => {
   /* context */
-  const { contracts, getToken, toAssetInfo } = useProtocol()
+  const { contracts, getToken, toAssetInfo, parseAssetInfo } = useProtocol()
   const { contents: findBalance } = useFindBalance()
   const config = useGovConfig()
   const communityConfig = useRecoilValueLoadable(communityConfigQuery)
@@ -85,6 +90,9 @@ const CreatePollForm = ({ type, headings }: Props) => {
   const getDistributionWeight = useRecoilValueLoadable(
     getDistributionWeightQuery
   )
+
+  const { mirrorToken, mint, collateralOracle } = contracts
+  const { factory, community, gov, oracleHub } = contracts
 
   const spend_limit =
     communityConfig.state === "hasValue"
@@ -130,18 +138,18 @@ const CreatePollForm = ({ type, headings }: Props) => {
       [PollType.WHITELIST]: [
         ...defaultKeys,
         Key.name,
-        Key.symbol,
-        Key.reference,
+        Key.ticker,
         Key.oracle,
+        Key.reference,
         Key.auctionDiscount,
         Key.minCollateralRatio,
       ],
       [PollType.PREIPO]: [
         ...defaultKeys,
         Key.name,
-        Key.symbol,
-        Key.reference,
+        Key.ticker,
         Key.oracle,
+        Key.reference,
         Key.auctionDiscount,
         Key.minCollateralRatio,
         Key.mintPeriod,
@@ -157,14 +165,17 @@ const CreatePollForm = ({ type, headings }: Props) => {
         Key.auctionDiscount,
         Key.minCollateralRatio,
       ],
-      [PollType.GOV_UPDATE]: [
+      [PollType.GOV_PARAM_UPDATE]: [
+        ...defaultKeys,
+        Key.effectiveDelay,
+        Key.voterWeight,
+      ],
+      [PollType.POLL_PARAM_UPDATE]: [
         ...defaultKeys,
         Key.quorum,
         Key.threshold,
         Key.votingPeriod,
-        Key.effectiveDelay,
         Key.proposalDeposit,
-        Key.voterWeight,
       ],
       [PollType.COLLATERAL]: [
         ...defaultKeys,
@@ -173,6 +184,8 @@ const CreatePollForm = ({ type, headings }: Props) => {
         Key.oracle,
       ],
       [PollType.COMMUNITY_SPEND]: [...defaultKeys, Key.recipient, Key.amount],
+      [PollType.UPDATE_PRIORITY]: [...defaultKeys, Key.asset],
+      [PollType.REMOVE_PRICE]: [...defaultKeys, Key.asset, Key.oracle],
     }
 
     return additionalKeys[type]
@@ -201,7 +214,7 @@ const CreatePollForm = ({ type, headings }: Props) => {
   /* form:validate */
   const validate = (values: Values<Key>) => {
     const { title, description, link } = values
-    const { name, ticker, symbol, oracle, asset } = values
+    const { name, ticker, oracle, asset } = values
     const { weight, auctionDiscount, minCollateralRatio } = values
     const { mintPeriod, minCollateralRatioAfterIPO, price } = values
     const { owner, quorum, threshold, votingPeriod } = values
@@ -210,7 +223,11 @@ const CreatePollForm = ({ type, headings }: Props) => {
     const { listed, reference } = values
 
     const paramRange = {
-      optional: [PollType.MINT_UPDATE, PollType.GOV_UPDATE].includes(type),
+      optional: [
+        PollType.MINT_UPDATE,
+        PollType.POLL_PARAM_UPDATE,
+        PollType.GOV_PARAM_UPDATE,
+      ].includes(type),
       max: "100",
     }
 
@@ -220,7 +237,6 @@ const CreatePollForm = ({ type, headings }: Props) => {
       [Key.link]: { min: 12, max: 128 },
       [Key.name]: { min: 3, max: 50 },
       [Key.ticker]: { min: 1, max: 11 },
-      [Key.symbol]: { min: 3, max: 12 },
     }
 
     return record(
@@ -249,10 +265,6 @@ const CreatePollForm = ({ type, headings }: Props) => {
         [Key.suggestedOracle]: "",
 
         // Type.WHITELIST
-        [Key.symbol]:
-          v.required(symbol) ||
-          v.length(symbol, textRanges[Key.symbol], "Symbol") ||
-          v.symbol(symbol),
         [Key.reference]: !reference
           ? ""
           : v.integer(reference, "Reference Poll ID"),
@@ -327,14 +339,71 @@ const CreatePollForm = ({ type, headings }: Props) => {
   const description = combineDescription(values)
 
   const { link } = values
-  const { name, symbol, oracle, asset } = values
+  const { name, ticker, oracle, asset } = values
   const { weight, auctionDiscount, minCollateralRatio } = values
   const { mintPeriod, minCollateralRatioAfterIPO, price } = values
   const { owner, quorum, threshold, votingPeriod } = values
   const { effectiveDelay, proposalDeposit } = values
   const { voterWeight, multiplier, recipient, amount } = values
 
-  const deposit = config?.proposal_deposit ?? "0"
+  const deposit =
+    type === PollType.GOV_PARAM_UPDATE || type === PollType.POLL_PARAM_UPDATE
+      ? config?.auth_admin_poll_config.proposal_deposit ?? "0"
+      : config?.default_poll_config.proposal_deposit ?? "0"
+
+  /* query: oracle feeder */
+  const lcd = useLCDClient()
+
+  type PriceItem = [
+    number,
+    { address: AccAddress; provider_name: string },
+    { success: { last_updated: number; rate: string } }
+  ]
+
+  const { data: proxiedList, ...proxiedListState } = useQuery(
+    ["ProxyWhitelist", ticker, asset],
+    async () => {
+      if (ticker) {
+        const { proxies } = await lcd.wasm.contractQuery<{
+          proxies: ProxyItem[]
+        }>(oracleHub, { proxy_whitelist: {} })
+
+        const checkSource = async (proxy_addr: AccAddress) =>
+          await lcd.wasm.contractQuery<Rate>(oracleHub, {
+            check_source: { proxy_addr, symbol: ticker },
+          })
+
+        const checkSourceResponses = await Promise.allSettled(
+          proxies.map(({ address }) => checkSource(address))
+        )
+
+        const sources = checkSourceResponses.map((result) => {
+          if (result.status === "rejected") return false
+          return true
+        })
+
+        return proxies.filter((_, index) => sources[index])
+      } else {
+        const data = await lcd.wasm.contractQuery<{ price_list: PriceItem[] }>(
+          oracleHub,
+          { price_list: { asset_token: asset } }
+        )
+
+        return data.price_list.map(([, proxy]) => proxy)
+      }
+    },
+    { enabled: !!(ticker || asset), retry: false }
+  )
+
+  const proxiedItem = proxiedList?.length === 1 ? proxiedList[0] : undefined
+
+  useEffect(() => {
+    if (proxiedItem) setValue(Key.oracle, proxiedItem.address)
+  }, [proxiedItem, setValue])
+
+  useEffect(() => {
+    if (proxiedList) setPriorityList(proxiedList)
+  }, [proxiedList, setValue])
 
   /* render:form */
   const isCollateral =
@@ -349,21 +418,6 @@ const CreatePollForm = ({ type, headings }: Props) => {
   }
 
   const select = useSelectAsset(selectAssetConfig)
-
-  const descriptionLabel = {
-    [PollType.TEXT]: "Description",
-    [PollType.TEXT_WHITELIST]: "Reason for listing",
-    [PollType.TEXT_PREIPO]: "Reason for listing",
-    [PollType.WHITELIST]: "Description",
-    [PollType.PREIPO]: "Description",
-    [PollType.DELIST_COLLATERAL]: "Description",
-    [PollType.DELIST_ASSET]: "Description",
-    [PollType.INFLATION]: "Reason for modifying weight parameter",
-    [PollType.MINT_UPDATE]: "Reason for modifying mint parameter",
-    [PollType.GOV_UPDATE]: "Reason for modifying governance parameter",
-    [PollType.COLLATERAL]: "Reasons for modifying collateral parameter",
-    [PollType.COMMUNITY_SPEND]: "Reason for community pool spending",
-  }[type]
 
   const weightPlaceholders = {
     [Key.weight]: div(getWeight(asset), 100),
@@ -384,14 +438,22 @@ const CreatePollForm = ({ type, headings }: Props) => {
 
   const configPlaceholders = {
     [Key.owner]: config?.owner ?? "",
-    [Key.quorum]: times(config?.quorum, 100),
-    [Key.threshold]: times(config?.threshold, 100),
-    [Key.votingPeriod]: String(config?.voting_period) ?? "",
+    [Key.quorum]: times(config?.default_poll_config.quorum, 100),
+    [Key.threshold]: times(config?.default_poll_config.threshold, 100),
+    [Key.votingPeriod]: String(config?.default_poll_config.voting_period) ?? "",
     [Key.effectiveDelay]: String(config?.effective_delay) ?? "",
-    [Key.proposalDeposit]: lookup(config?.proposal_deposit, "MIR") ?? "",
+    [Key.proposalDeposit]:
+      lookup(config?.default_poll_config.proposal_deposit, "MIR") ?? "",
     [Key.voterWeight]: config?.voter_weight ?? "",
   }
 
+  const renderPriceItemOption = ({ address, provider_name }: ProxyItem) => (
+    <option value={address} key={address}>
+      {provider_name}
+    </option>
+  )
+
+  const fieldKeys = getFieldKeys()
   const fields = {
     deposit: {
       help: renderBalance(findBalance(getToken("MIR")), "MIR"),
@@ -405,7 +467,7 @@ const CreatePollForm = ({ type, headings }: Props) => {
         input: { placeholder: "", autoFocus: true },
       },
       [Key.description]: {
-        label: descriptionLabel,
+        label: "Description",
         textarea: { placeholder: "" },
       },
       [Key.link]: {
@@ -454,13 +516,30 @@ const CreatePollForm = ({ type, headings }: Props) => {
       },
 
       // Type.WHITELIST
-      [Key.symbol]: {
-        label: "Symbol",
-        input: { placeholder: "mAAPL" },
-      },
       [Key.oracle]: {
-        label: "Oracle Feeder",
-        input: { placeholder: "Terra address of the oracle feeder" },
+        label: "Oracle Privider",
+        value:
+          fieldKeys.includes(Key.ticker) && !ticker
+            ? "Enter ticker to find options"
+            : fieldKeys.includes(Key.asset) && !asset
+            ? "Select asset to find options"
+            : proxiedListState.error || (proxiedList && !proxiedList.length)
+            ? "No available price"
+            : proxiedListState.isLoading
+            ? "Loading..."
+            : proxiedItem
+            ? proxiedItem.provider_name
+            : undefined,
+        select:
+          proxiedList && proxiedList.length > 1 ? (
+            <select
+              value={oracle}
+              onChange={(e) => setValue(Key.oracle, e.target.value)}
+              style={{ width: "100%" }}
+            >
+              {proxiedList.map(renderPriceItemOption)}
+            </select>
+          ) : undefined,
       },
       [Key.reference]: {
         label: "Reference Poll ID (Optional)",
@@ -547,11 +626,11 @@ const CreatePollForm = ({ type, headings }: Props) => {
           step: step(),
           placeholder: mintPlaceholders[Key.price],
         },
-        unit: symbol ? `UST per ${symbol}` : "",
+        unit: ticker ? `UST per ${ticker}` : "",
         unitAfterValue: true,
       },
 
-      // Type.GOV_UPDATE
+      // Type.GOV-PARAM-UPDATE, Type.POLL-PARAM-UPDATE
       [Key.owner]: {
         label: "Owner (Optional)",
         input: { placeholder: configPlaceholders[Key.owner] },
@@ -659,14 +738,12 @@ const CreatePollForm = ({ type, headings }: Props) => {
   /* submit */
   const newContractMsg = useNewContractMsg()
   const token = asset
-  const { mirrorToken, mint, gov, factory, community, collateralOracle } =
-    contracts
 
   /* Type.WHITELIST */
   const whitelistMessage = {
     name,
-    symbol,
-    oracle_feeder: oracle,
+    symbol: ticker,
+    oracle_proxy: oracle,
     params: {
       auction_discount: div(auctionDiscount, 100),
       min_collateral_ratio: div(minCollateralRatio, 100),
@@ -709,15 +786,30 @@ const CreatePollForm = ({ type, headings }: Props) => {
     }),
   }
 
-  /* Type.GOV_UPDATE */
-  const govUpdateConfig = {
+  /* Type.GOV_PARAM_UPDATE */
+  const govParamUpdateConfig = {
     owner,
-    quorum: quorum ? div(quorum, 100) : undefined,
-    threshold: threshold ? div(threshold, 100) : undefined,
-    voting_period: votingPeriod ? Number(votingPeriod) : undefined,
     effective_delay: effectiveDelay ? Number(effectiveDelay) : undefined,
-    proposal_deposit: proposalDeposit ? toAmount(proposalDeposit) : undefined,
     voter_weight: voterWeight || undefined,
+  }
+
+  /* Type.POLL_PARAM_UPDATE */
+  const pollParamUpdateConfig = {
+    owner,
+    default_poll_config: {
+      proposal_deposit: proposalDeposit
+        ? toAmount(proposalDeposit)
+        : config?.default_poll_config.proposal_deposit,
+      voting_period: votingPeriod
+        ? Number(votingPeriod)
+        : config?.default_poll_config.voting_period,
+      quorum: quorum ? div(quorum, 100) : config?.default_poll_config.quorum,
+      threshold: threshold
+        ? div(threshold, 100)
+        : config?.default_poll_config.threshold,
+    },
+    migration_poll_config: null,
+    auth_admin_poll_config: null,
   }
 
   /* Type.COLLATERL */
@@ -732,10 +824,60 @@ const CreatePollForm = ({ type, headings }: Props) => {
     amount: toAmount(amount),
   }
 
+  const assetInfo = toAssetInfo(token)
+  const { symbol } = parseAssetInfo(assetInfo)
+
+  /* Type.UPDATE_PRIORITY */
+  const [priorityList, setPriorityList] = useState<ProxyItem[]>()
+
+  const updateSourcePriorityList = {
+    symbol: symbol.slice(1),
+    priority_list: priorityList?.map(({ address }, index) => [
+      address,
+      (index + 1) * 10,
+    ]),
+  }
+
+  const updatePriorityPassCommand = {
+    contract_addr: oracleHub,
+    msg: toBase64({ update_source_priority_list: updateSourcePriorityList }),
+  }
+
+  /* Type.REMOVE_PRICE */
+  const removeSource = {
+    symbol: symbol.slice(1),
+    proxy_addr: oracle,
+  }
+
+  const removePricePassCommand = {
+    contract_addr: oracleHub,
+    msg: toBase64({ remove_source: removeSource }),
+  }
+
+  const admin_action = {
+    [PollType.GOV_PARAM_UPDATE]: { update_config: govParamUpdateConfig },
+    [PollType.POLL_PARAM_UPDATE]: { update_config: pollParamUpdateConfig },
+    [PollType.TEXT]: undefined,
+    [PollType.TEXT_WHITELIST]: undefined,
+    [PollType.TEXT_PREIPO]: undefined,
+    [PollType.PREIPO]: undefined,
+    [PollType.WHITELIST]: undefined,
+    [PollType.DELIST_ASSET]: undefined,
+    [PollType.DELIST_COLLATERAL]: undefined,
+    [PollType.COMMUNITY_SPEND]: undefined,
+    [PollType.MINT_UPDATE]: undefined,
+    [PollType.COLLATERAL]: undefined,
+    [PollType.UPDATE_PRIORITY]: undefined,
+    [PollType.REMOVE_PRICE]: undefined,
+    [PollType.INFLATION]: undefined,
+  }[type]
+
   const execute_msg = {
     [PollType.TEXT]: undefined,
     [PollType.TEXT_WHITELIST]: undefined,
     [PollType.TEXT_PREIPO]: undefined,
+    [PollType.GOV_PARAM_UPDATE]: undefined,
+    [PollType.POLL_PARAM_UPDATE]: undefined,
     [PollType.WHITELIST]: {
       contract: factory,
       msg: toBase64({ whitelist: whitelistMessage }),
@@ -760,10 +902,6 @@ const CreatePollForm = ({ type, headings }: Props) => {
       contract: factory,
       msg: toBase64({ pass_command: mintPassCommand }),
     },
-    [PollType.GOV_UPDATE]: {
-      contract: gov,
-      msg: toBase64({ update_config: govUpdateConfig }),
-    },
     [PollType.COLLATERAL]: {
       contract: collateralOracle,
       msg: toBase64({
@@ -774,10 +912,22 @@ const CreatePollForm = ({ type, headings }: Props) => {
       contract: community,
       msg: toBase64({ spend: communitySpend }),
     },
+    [PollType.UPDATE_PRIORITY]: {
+      contract: factory,
+      msg: toBase64({
+        pass_command: updatePriorityPassCommand,
+      }),
+    },
+    [PollType.REMOVE_PRICE]: {
+      contract: factory,
+      msg: toBase64({
+        pass_command: removePricePassCommand,
+      }),
+    },
   }[type]
 
   const msg = toBase64({
-    create_poll: { title, description, link, execute_msg },
+    create_poll: { title, description, link, execute_msg, admin_action },
   })
 
   const data = [
@@ -790,9 +940,13 @@ const CreatePollForm = ({ type, headings }: Props) => {
     ? ["Insufficient balance"]
     : getLength(msg) > MAX_MSG_LENGTH
     ? ["Input is too long to be executed"]
-    : type === PollType.GOV_UPDATE &&
-      Object.values(govUpdateConfig).filter(Boolean).length > 1
+    : type === PollType.GOV_PARAM_UPDATE &&
+      Object.values(govParamUpdateConfig).filter(Boolean).length > 1
     ? ["Only one governance parameter can be modified at a time."]
+    : type === PollType.UPDATE_PRIORITY && proxiedItem
+    ? ["There is only one price source"]
+    : type === PollType.REMOVE_PRICE && proxiedItem
+    ? ["Cannot remove the only price source"]
     : undefined
 
   const disabled = invalid || !!messages?.length
@@ -800,7 +954,6 @@ const CreatePollForm = ({ type, headings }: Props) => {
   /* result */
   const label = "Submit"
   const parseTx = useGovReceipt()
-  const fieldKeys = getFieldKeys()
   const container = { attrs, contents: [], messages, label, disabled, data }
 
   return (
@@ -815,6 +968,25 @@ const CreatePollForm = ({ type, headings }: Props) => {
           !fields[key].input?.disabled && (
             <FormGroup {...fields[key]} type={2} textAlign="left" key={key} />
           )
+      )}
+
+      {type === PollType.UPDATE_PRIORITY && priorityList && (
+        <FormGroup label="Priority" type={2} textAlign="left">
+          <Sortable
+            list={priorityList.map(({ address, provider_name }) => ({
+              id: address,
+              content: provider_name,
+            }))}
+            callback={(list) =>
+              setPriorityList(
+                list.map(({ id: address, content: provider_name }) => ({
+                  address,
+                  provider_name,
+                }))
+              )
+            }
+          />
+        </FormGroup>
       )}
 
       <FormGroup {...fields["deposit"]} type={2} textAlign="left" />

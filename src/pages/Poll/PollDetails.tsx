@@ -3,6 +3,7 @@ import { gt, sum } from "../../libs/math"
 import { Poll } from "../../data/gov/poll"
 import Card from "../../components/Card"
 import { Gutter } from "../../components/Grid"
+import FormFeedback from "../../components/FormFeedback"
 import PollHeader from "./PollHeader"
 import PollMeta from "./PollMeta"
 import PollSummary from "./PollSummary"
@@ -13,10 +14,22 @@ import styles from "./PollDetails.module.scss"
 
 const PollDetails = ({ poll }: { poll: Poll }) => {
   const { params } = useRouteMatch<{ id: string }>()
+  const { admin_action } = poll
   const id = Number(params.id)
+
+  const fromFeedBack =
+    admin_action &&
+    ("execute_migrations" in admin_action ||
+    "authorize_claim" in admin_action ? (
+      <FormFeedback type="warn">
+        Migration poll is executable anytime after the poll’s quorum and
+        threshold is reached
+      </FormFeedback>
+    ) : undefined)
 
   return !poll ? null : (
     <>
+      {fromFeedBack}
       <Gutter>
         <Card>
           <PollHeader {...poll} titleClassName={styles.title} />

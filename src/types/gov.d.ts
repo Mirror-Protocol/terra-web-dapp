@@ -11,10 +11,17 @@ type DecodedExecuteMsg =
   | { update_collateral_multiplier: UpdateCollateralMultiplier }
   | { spend: Spend }
 
+type PassCommandMsg =
+  | { update_asset: UpdateAsset }
+  | { update_source_priority_list: UpdatePriority }
+  | { remove_source: RemovePrice }
+  | { whitelist_proxy: WhitelistProxy }
+
 interface Whitelist {
   name: string
   symbol: string
   oracle_feeder: string
+  oracle_proxy: string
   params: AssetParams
 }
 
@@ -44,6 +51,21 @@ interface UpdateWeight {
   weight: string
 }
 
+interface UpdatePriority {
+  symbol: string
+  priority_list: [[string, number]]
+}
+
+interface RemovePrice {
+  symbol: string
+  proxy_addr: string
+}
+
+interface WhitelistProxy {
+  proxy_addr: string
+  provider_name: string
+}
+
 interface PassCommand {
   contract_addr: string
   msg: EncodedPassCommandMsg
@@ -71,12 +93,30 @@ interface Voter {
 
 /* config */
 interface GovConfig {
-  owner: string
-  voting_period: number
+  admin_manager: string
+  auth_admin_poll_config: {
+    proposal_deposit: string
+    quorum: string
+    threshold: string
+    voting_period: number
+  }
+  default_poll_config: {
+    proposal_deposit: string
+    quorum: string
+    threshold: string
+    voting_period: number
+  }
   effective_delay: number
-  quorum: string
-  threshold: string
-  proposal_deposit: string
+  migration_poll_config: {
+    proposal_deposit: string
+    quorum: string
+    threshold: string
+    voting_period: number
+  }
+  mirror_token: string
+  owner: string
+  poll_gas_limit: number
+  snapshot_period: number
   voter_weight: string
 }
 

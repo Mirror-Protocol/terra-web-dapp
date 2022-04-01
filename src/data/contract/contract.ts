@@ -33,8 +33,8 @@ export const oraclePriceQuery = selector({
         symbol === "MIR"
           ? undefined
           : {
-              contract: contracts["oracle"],
-              msg: { price: { base_asset: token, quote_asset: "uusd" } },
+              contract: contracts["oracleHub"],
+              msg: { price: { asset_token: token } },
             },
       "oraclePrice"
     )

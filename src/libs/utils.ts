@@ -14,12 +14,14 @@ export const record = <T, V>(
     {} as Record<keyof T, V>
   )
 
-export const omitEmpty = (object: object): object =>
-  Object.entries(object).reduce((acc, [key, value]) => {
+export const omitEmpty = (object: object): object => {
+  if (Array.isArray(object)) return object
+  return Object.entries(object).reduce((acc, [key, value]) => {
     const next = is(Object, value) ? omitEmpty(value) : value
     const valid = Number.isFinite(value) || value
     return Object.assign({}, acc, valid && { [key]: next })
   }, {})
+}
 
 /* array */
 export const insertIf = <T>(condition?: any, ...elements: T[]) =>

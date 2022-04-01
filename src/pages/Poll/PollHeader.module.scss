@@ -30,6 +30,8 @@
 }
 
 .type {
+  @include flex();
+  flex-direction: column;
   text-transform: capitalize;
 }
 

@@ -4,16 +4,22 @@ import { percent } from "../../libs/num"
 import { formatAsset } from "../../libs/parse"
 import { fromBase64 } from "../../libs/formHelpers"
 import { protocolQuery } from "../contract/protocol"
+import { getProxyWhitelist } from "../contract/proxy"
 import { Content } from "../../components/componentTypes"
-import { PollType } from "../../pages/Poll/CreatePoll"
-import { Poll, PollData } from "./poll"
+import { PollType, ViewOnlyPollType } from "../../pages/Poll/CreatePoll"
+import { AdminAction, ExecuteData, Poll, PollData } from "./poll"
 
 const parsePollQuery = selector({
   key: "parsePoll",
   get: ({ get }) => {
     const { getSymbol, parseAssetInfo } = get(protocolQuery)
+    const proxyWhitelist = get(getProxyWhitelist)
 
-    const parseParams = (decoded: DecodedExecuteMsg, id: number) => {
+    const parseParams = (
+      decoded: DecodedExecuteMsg,
+      id: number,
+      adminAction?: AdminAction
+    ) => {
       const type =
         "whitelist" in decoded
           ? PollType.WHITELIST
@@ -22,11 +28,11 @@ const parsePollQuery = selector({
           : "revoke_asset" in decoded
           ? PollType.DELIST_ASSET
           : "pass_command" in decoded
-          ? PollType.MINT_UPDATE
+          ? parsePassCommandType(decoded.pass_command)
           : "update_weight" in decoded
           ? PollType.INFLATION
           : "update_config" in decoded
-          ? PollType.GOV_UPDATE
+          ? PollType.GOV_PARAM_UPDATE
           : "update_collateral_multiplier" in decoded
           ? PollType.COLLATERAL
           : "spend" in decoded
@@ -45,7 +51,7 @@ const parsePollQuery = selector({
           : "update_weight" in decoded
           ? parseUpdateWeight(decoded.update_weight)
           : "update_config" in decoded
-          ? parseUpdateConfig(decoded.update_config)
+          ? parseUpdateConfig(decoded.update_config, adminAction)
           : "update_collateral_multiplier" in decoded
           ? parseUpdateCollateralMultiplier(
               decoded.update_collateral_multiplier
@@ -57,12 +63,69 @@ const parsePollQuery = selector({
       return { type, ...parsed }
     }
 
-    const parseWhitelist = ({ params, ...whitelist }: Whitelist) => {
-      const { mint_period, pre_ipo_price, ...rest } = params
+    const parseAdminAction = (adminAction: AdminAction) => {
+      const type =
+        "execute_migrations" in adminAction
+          ? ViewOnlyPollType.MIGRATION
+          : "authorize_claim" in adminAction
+          ? ViewOnlyPollType.AUTHORIZE
+          : "update_config" in adminAction
+          ? adminAction.update_config.voter_weight ||
+            adminAction.update_config.effective_delay
+            ? PollType.GOV_PARAM_UPDATE
+            : PollType.POLL_PARAM_UPDATE
+          : PollType.TEXT
+
+      const parsed =
+        "update_config" in adminAction
+          ? parseAdminActionUpdateConfig(adminAction.update_config)
+          : {}
+
+      return { type, ...parsed }
+    }
+
+    const parseAdminActionUpdateConfig = (config: GovConfig) => {
+      const { effective_delay, voter_weight, owner } = config
+      const { auth_admin_poll_config, default_poll_config } = config
+      const { migration_poll_config } = config
+
+      const configData =
+        migration_poll_config || auth_admin_poll_config || default_poll_config
+
+      const voting_period = configData?.voting_period
+      const proposal_deposit = configData?.proposal_deposit
+      const quorum = configData?.quorum
+      const threshold = configData?.threshold
 
       return {
         contents: [
-          ...parseContents(whitelist),
+          ...parseContents({
+            owner,
+            voting_period: getBlocks(voting_period),
+            effective_delay: getBlocks(effective_delay),
+            proposal_deposit: proposal_deposit
+              ? formatAsset(proposal_deposit, "MIR")
+              : undefined,
+            voter_weight,
+          }),
+          ...parseContents({ quorum, threshold }, { format: percent }),
+        ],
+      }
+    }
+
+    const parseWhitelist = ({ params, ...whitelist }: Whitelist) => {
+      const { mint_period, pre_ipo_price, ...rest } = params
+      const { oracle_proxy } = whitelist
+      const provider = parseProxyAddress(oracle_proxy)
+
+      return {
+        contents: [
+          ...parseContents({
+            name: whitelist.name,
+            symbol: whitelist.symbol,
+            oracle_feeder: whitelist.oracle_feeder,
+            oracle_provider: provider,
+          }),
           ...parseContents(rest, { format: percent }),
           ...parseContents({ mint_period }, { unit: "Seconds" }),
           ...parseContents(
@@ -71,6 +134,20 @@ const parsePollQuery = selector({
           ),
         ],
       }
+    }
+
+    const parsePassCommandType = (passCommand: PassCommand) => {
+      const { msg } = passCommand
+      const decodedMsg: PassCommandMsg = fromBase64<PassCommandMsg>(msg)
+      return "update_source_priority_list" in decodedMsg
+        ? PollType.UPDATE_PRIORITY
+        : "remove_source" in decodedMsg
+        ? PollType.REMOVE_PRICE
+        : "whitelist_proxy" in decodedMsg
+        ? ViewOnlyPollType.WHITELIST_ORACLE
+        : "update_asset"
+        ? PollType.MINT_UPDATE
+        : PollType.TEXT
     }
 
     const parseRevokeCollateral = ({ asset }: RevokeCollateral) => {
@@ -84,8 +161,60 @@ const parsePollQuery = selector({
     }
 
     const parsePassCommand = ({ msg }: PassCommand) => {
-      const decodedPassCommand = fromBase64<DecodedPassCommandMsg>(msg)
-      return parseUpdateAsset(decodedPassCommand.update_asset)
+      const decodedPassCommand = fromBase64<PassCommandMsg>(msg)
+
+      return "update_asset" in decodedPassCommand
+        ? parseUpdateAsset(decodedPassCommand.update_asset)
+        : "update_source_priority_list" in decodedPassCommand
+        ? parseUpdatePriorityList(
+            decodedPassCommand.update_source_priority_list
+          )
+        : "remove_source" in decodedPassCommand
+        ? parseRemovePrice(decodedPassCommand.remove_source)
+        : "whitelist_proxy" in decodedPassCommand
+        ? parseWhitelistProxy(decodedPassCommand.whitelist_proxy)
+        : {}
+    }
+
+    const parseWhitelistProxy = (proxy: WhitelistProxy) => {
+      const { proxy_addr, provider_name } = proxy
+      return {
+        contents: [
+          ...parseContents({ proxy_address: proxy_addr }),
+          ...parseContents({ oracle_provider: provider_name }),
+        ],
+      }
+    }
+
+    const parseUpdatePriorityList = (updatePriority: UpdatePriority) => {
+      const { symbol, priority_list } = updatePriority
+      const contents = priority_list
+        .sort(([, prev], [, current]) => prev - current)
+        .map(([addr]) => {
+          const proxy = parseProxyAddress(addr)
+          return { oracle_provider: proxy }
+        })
+      return {
+        contents: [
+          ...parseContents({ symbol }),
+          ...contents.map((content) => parseContents(content)).flat(),
+        ],
+      }
+    }
+
+    const parseRemovePrice = (removeSource: RemovePrice) => {
+      const { symbol, proxy_addr } = removeSource
+      const proxy = parseProxyAddress(proxy_addr)
+      return {
+        contents: [...parseContents({ symbol, oracle_provider: proxy })],
+      }
+    }
+
+    const parseProxyAddress = (address: string) => {
+      const proxy =
+        proxyWhitelist?.proxies.find((list) => list.address === address)
+          ?.provider_name || address
+      return proxy
     }
 
     const parseUpdateAsset = ({ asset_token, ...params }: UpdateAsset) => ({
@@ -102,10 +231,18 @@ const parsePollQuery = selector({
       }),
     })
 
-    const parseUpdateConfig = (config: Partial<GovConfig>) => {
-      const { voting_period, effective_delay } = config
-      const { quorum, threshold } = config
-      const { proposal_deposit, voter_weight, owner } = config
+    const parseUpdateConfig = (
+      config: Partial<GovConfig>,
+      adminAction?: AdminAction
+    ) => {
+      const { effective_delay } = config
+      const { voter_weight, owner } = config
+      const poll_config = getConfig(config, adminAction)
+
+      const voting_period = poll_config?.voting_period
+      const proposal_deposit = poll_config?.proposal_deposit
+      const quorum = poll_config?.quorum
+      const threshold = poll_config?.threshold
 
       return {
         contents: [
@@ -146,10 +283,14 @@ const parsePollQuery = selector({
       try {
         if (poll.execute_data) {
           const decoded = fromBase64<DecodedExecuteMsg>(poll.execute_data.msg)
-          const parsed = parseParams(decoded, poll.id)
+          const parsed = parseParams(decoded, poll.id, poll.admin_action)
           return { ...poll, ...parsed }
         } else {
-          return { ...poll, type: PollType.TEXT }
+          const { admin_action } = poll
+          if (!admin_action) return { ...poll, type: PollType.TEXT }
+
+          const parsed = parseAdminAction(admin_action)
+          return { ...poll, ...parsed }
         }
       } catch (error) {
         return poll
@@ -180,3 +321,42 @@ const parseContents = (
       }, [])
 
 export const getTitle = (title: string) => title.replace(/_/g, " ")
+
+export const getConfig = (
+  config: Partial<GovConfig> | GovConfig,
+  adminAction?: AdminAction
+) => {
+  if (!config) return
+
+  const { default_poll_config } = config
+  const { auth_admin_poll_config } = config
+  const { migration_poll_config } = config
+
+  const poll_config = adminAction
+    ? "execute_migrations" in adminAction
+      ? migration_poll_config
+      : "authorize_claim" in adminAction || "update_config" in adminAction
+      ? auth_admin_poll_config
+      : default_poll_config
+    : default_poll_config
+
+  return poll_config
+}
+
+export const parseExecuteData = (obj: ExecuteData) => {
+  const data = fromBase64<{ pass_command: ExecuteData } | object>(obj.msg)
+  const parse = {
+    ...obj,
+    msg:
+      "pass_command" in data
+        ? {
+            pass_command: {
+              ...data.pass_command,
+              msg: fromBase64(data.pass_command.msg),
+            },
+          }
+        : data,
+  }
+
+  return parse
+}

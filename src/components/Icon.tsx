@@ -21,6 +21,7 @@ import { ReactComponent as Discord } from "../styles/icons/Discord.svg"
 import { ReactComponent as Docs } from "../styles/icons/Docs.svg"
 import { ReactComponent as DownSolid } from "../styles/icons/DownSolid.svg"
 import { ReactComponent as Download } from "../styles/icons/Download.svg"
+import { ReactComponent as DragHandle } from "../styles/icons/DragHandle.svg"
 import { ReactComponent as ExclamationCircle } from "../styles/icons/ExclamationCircle.svg"
 import { ReactComponent as ExclamationCircleSolid } from "../styles/icons/ExclamationCircleSolid.svg"
 import { ReactComponent as ExclamationTriangleSolid } from "../styles/icons/ExclamationTriangleSolid.svg"
@@ -85,6 +86,7 @@ const Icon = ({ name, size = 16, className }: Props) => {
       Docs: <Docs {...props} />,
       DownSolid: <DownSolid {...props} />,
       Download: <Download {...props} />,
+      DragHandle: <DragHandle {...props} />,
       ExclamationCircle: <ExclamationCircle {...props} />,
       ExclamationCircleSolid: <ExclamationCircleSolid {...props} />,
       ExclamationTriangleSolid: <ExclamationTriangleSolid {...props} />,
