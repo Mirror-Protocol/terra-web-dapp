@@ -38,7 +38,7 @@ import { getPath, MenuKey } from "../routes"
 import useMintReceipt from "./receipts/useMintReceipt"
 import FormContainer from "./modules/FormContainer"
 import useSelectAsset from "./modules/useSelectAsset"
-import useLatest from "./modules/useLatest"
+import useIsMarketClosed from "./modules/useIsMarketClosed"
 import CollateralRatio from "./modules/CollateralRatio"
 import SetSlippageTolerance from "./modules/SetSlippageTolerance"
 import Step from "./Step"
@@ -76,7 +76,7 @@ const MintForm = ({ position, type }: Props) => {
   const { contents: findBalance, ...findBalanceStore } = useFindBalance()
 
   const getMaxAmount = useGetMax()
-  const { isClosed } = useLatest()
+  const isClosed = useIsMarketClosed
 
   const getSafeRatio = (ratio: string) =>
     gt(ratio, 0) ? plus(ratio, 0.5) : "0"

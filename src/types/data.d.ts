@@ -4,6 +4,7 @@ interface Price {
 
 interface Rate {
   rate: string
+  last_updated: number
 }
 
 interface Balance {
