@@ -2,7 +2,7 @@ import { useQuery } from "react-query"
 import { useLCDClient } from "@terra-money/wallet-provider"
 import { useProtocol } from "../../data/contract/protocol"
 
-const useIsMarketClosed = (token: string) => {
+const useGetIsMarketClosed = (token: string) => {
   const { contracts, getIsDelisted } = useProtocol()
 
   const lcd = useLCDClient()
@@ -29,4 +29,4 @@ const useIsMarketClosed = (token: string) => {
   return true
 }
 
-export default useIsMarketClosed
+export default useGetIsMarketClosed
