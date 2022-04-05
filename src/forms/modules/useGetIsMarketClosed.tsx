@@ -7,6 +7,7 @@ const useGetIsMarketClosed = (token: string) => {
   const { contracts, getIsDelisted, getSymbol } = useProtocol()
   const symbol = getSymbol(token)
 
+  //TODO: Fix
   const skip = ["uusd", "uluna", "aUST", "LunaX"].includes(symbol)
 
   const lcd = useLCDClient()
