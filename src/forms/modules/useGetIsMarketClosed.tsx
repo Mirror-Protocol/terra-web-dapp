@@ -4,7 +4,11 @@ import { useLCDClient } from "@terra-money/wallet-provider"
 import { useProtocol } from "../../data/contract/protocol"
 
 const useGetIsMarketClosed = (token: string) => {
-  const { contracts, getIsDelisted } = useProtocol()
+  const { contracts, getIsDelisted, getSymbol } = useProtocol()
+  const symbol = getSymbol(token)
+
+  //TODO: Fix
+  const skip = ["uusd", "uluna", "aUST", "LunaX"].includes(symbol)
 
   const lcd = useLCDClient()
   const { data } = useQuery(
@@ -13,7 +17,7 @@ const useGetIsMarketClosed = (token: string) => {
       await lcd.wasm.contractQuery<Rate>(contracts["oracleHub"], {
         price: { asset_token: token },
       }),
-    { enabled: token !== "uusd" }
+    { enabled: !skip }
   )
 
   const now = useMemo(() => {
@@ -30,7 +34,7 @@ const useGetIsMarketClosed = (token: string) => {
     return sec > 60 || getIsDelisted(token)
   }
 
-  return token === "uusd" ? false : true
+  return skip ? false : true
 }
 
 export default useGetIsMarketClosed
