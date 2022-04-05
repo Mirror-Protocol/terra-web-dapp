@@ -18,15 +18,13 @@ const useGetIsMarketClosed = (token: string) => {
   // false === market is opened
   // true === market is closed
 
-  if (token === "uusd") return false
-
   if (data) {
     const { last_updated } = data
     const sec = Math.floor(new Date().valueOf() / 1000) - last_updated
     return sec > 60 || getIsDelisted(token)
   }
 
-  return true
+  return token === "uusd" ? false : true
 }
 
 export default useGetIsMarketClosed
