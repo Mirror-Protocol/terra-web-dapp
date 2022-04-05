@@ -38,7 +38,7 @@ import { getPath, MenuKey } from "../routes"
 import useMintReceipt from "./receipts/useMintReceipt"
 import FormContainer from "./modules/FormContainer"
 import useSelectAsset from "./modules/useSelectAsset"
-import useLatest from "./modules/useLatest"
+import useGetIsMarketClosed from "./modules/useGetIsMarketClosed"
 import CollateralRatio from "./modules/CollateralRatio"
 import SetSlippageTolerance from "./modules/SetSlippageTolerance"
 import Step from "./Step"
@@ -76,7 +76,6 @@ const MintForm = ({ position, type }: Props) => {
   const { contents: findBalance, ...findBalanceStore } = useFindBalance()
 
   const getMaxAmount = useGetMax()
-  const { isClosed } = useLatest()
 
   const getSafeRatio = (ratio: string) =>
     gt(ratio, 0) ? plus(ratio, 0.5) : "0"
@@ -222,7 +221,6 @@ const MintForm = ({ position, type }: Props) => {
     native: ["uusd", "uluna"],
     showExternal: true,
     validate: (item) => item.status !== "PRE_IPO" && item.symbol !== "MIR",
-    dim: (token) => isClosed(token),
   })
 
   const select2 = useSelectAsset({
@@ -230,7 +228,6 @@ const MintForm = ({ position, type }: Props) => {
     token: token2,
     onSelect: onSelect(Key.token2),
     validate: ({ symbol }) => symbol !== "MIR",
-    dim: (token) => isClosed(token),
   })
 
   const maxAmountOpen =
@@ -243,8 +240,8 @@ const MintForm = ({ position, type }: Props) => {
     : maxAmountOpen
 
   /* latest price */
-  const isMarketClosed1 = isClosed(token1)
-  const isMarketClosed2 = isClosed(token2)
+  const isMarketClosed1 = useGetIsMarketClosed(token1)
+  const isMarketClosed2 = useGetIsMarketClosed(token2)
   const isMarketClosed = isMarketClosed1 || isMarketClosed2
   const isDeposit = prevCollateral && gt(amount1, prevCollateral.amount)
   const isTryingToWithdrawOnMarketClosed =
