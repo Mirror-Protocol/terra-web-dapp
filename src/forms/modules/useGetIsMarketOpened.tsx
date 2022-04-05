@@ -2,7 +2,7 @@ import { useQuery } from "react-query"
 import { useLCDClient } from "@terra-money/wallet-provider"
 import { useProtocol } from "../../data/contract/protocol"
 
-const useGetIsMarketClosed = (token: string) => {
+const useGetIsMarketOpened = (token: string) => {
   const { contracts, getIsDelisted } = useProtocol()
 
   const lcd = useLCDClient()
@@ -15,18 +15,18 @@ const useGetIsMarketClosed = (token: string) => {
     { enabled: token !== "uusd" }
   )
 
-  // false === market is open
-  // true === market is closed
+  // false === market is closed
+  // true === market is open
 
-  if (token === "uusd") return false
+  if (token === "uusd") return true
 
   if (data) {
     const { last_updated } = data
     const sec = Math.floor(new Date().valueOf() / 1000) - last_updated
-    return sec > 60 && getIsDelisted(token)
+    return sec < 60 && !getIsDelisted(token)
   }
 
-  return true
+  return false
 }
 
-export default useGetIsMarketClosed
+export default useGetIsMarketOpened

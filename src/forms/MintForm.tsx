@@ -38,7 +38,7 @@ import { getPath, MenuKey } from "../routes"
 import useMintReceipt from "./receipts/useMintReceipt"
 import FormContainer from "./modules/FormContainer"
 import useSelectAsset from "./modules/useSelectAsset"
-import useGetIsMarketClosed from "./modules/useGetIsMarketClosed"
+import useGetIsMarketOpened from "./modules/useGetIsMarketOpened"
 import CollateralRatio from "./modules/CollateralRatio"
 import SetSlippageTolerance from "./modules/SetSlippageTolerance"
 import Step from "./Step"
@@ -240,8 +240,8 @@ const MintForm = ({ position, type }: Props) => {
     : maxAmountOpen
 
   /* latest price */
-  const isMarketClosed1 = useGetIsMarketClosed(token1)
-  const isMarketClosed2 = useGetIsMarketClosed(token2)
+  const isMarketClosed1 = useGetIsMarketOpened(token1)
+  const isMarketClosed2 = useGetIsMarketOpened(token2)
   const isMarketClosed = isMarketClosed1 || isMarketClosed2
   const isDeposit = prevCollateral && gt(amount1, prevCollateral.amount)
   const isTryingToWithdrawOnMarketClosed =
