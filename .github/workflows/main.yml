@@ -49,7 +49,7 @@ jobs:
     name: Update cloudflare
     strategy:
       matrix:
-        zone_id: ["4f21ee71322ab9d9d946f3e381415175", "d5f6cfc820e8956e3e493aa354464e5f", "cff51f05ed7d948f5ea310b27dd459a7"]
+        zone_id: [{{ secrets.APP_ZONE_ID }}, {{ secrets.CH_ZONE_ID }}, {{ secrets.IS_ZONE_ID }}]
     steps:
       - name: Update CloudFlare DNS with new IPFS hash
         env:
@@ -60,3 +60,18 @@ jobs:
         uses: textileio/cloudflare-update-dnslink@v2
         with:
           cid: ${{ needs.deploy_pinata.outputs.ipfs_hash }}
+
+  update_terraform_vars:
+    needs: [deploy_pinata]
+    runs-on: ubuntu-latest
+    name: Update terraform vars
+    steps:
+      - name: Update Terraform cloud vars
+        uses: patrontech/devops-tf-cloud-update@v1.0
+        with:
+          workSpaceName: dns-mirror
+          organizationName: ${{ secrets.ORGANIZATION }}
+          terraformToken: ${{ secrets.TERRAFORM_TOKEN }}
+          terraformHost: 'app.terraform.io'
+          variableName: 'ipfs_hash'
+          variableValue: ${{ needs.deploy_pinata.outputs.ipfs_hash }}
