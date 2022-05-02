@@ -1,14 +1,8 @@
 name: deploy
 on:
-<<<<<<< HEAD
-  # push:
-  #   branches:
-  #     - main
-=======
   push:
     branches:
       - main
->>>>>>> main
   workflow_dispatch:
 
 jobs:
