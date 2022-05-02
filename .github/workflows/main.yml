@@ -46,7 +46,7 @@ jobs:
   update_cloudflare_app:
     needs: [deploy_pinata]
     runs-on: ubuntu-latest
-    name: Update cloudflare
+    name: Update cloudflare mirrorprotocol.app
     steps:
       - name: Update CloudFlare DNS with new IPFS hash
         env:
@@ -61,7 +61,7 @@ jobs:
   update_cloudflare_ch:
     needs: [deploy_pinata]
     runs-on: ubuntu-latest
-    name: Update cloudflare
+    name: Update cloudflare mirrorprotocol.ch
     steps:
       - name: Update CloudFlare DNS with new IPFS hash
         env:
@@ -76,7 +76,7 @@ jobs:
   update_cloudflare_is:
     needs: [deploy_pinata]
     runs-on: ubuntu-latest
-    name: Update cloudflare
+    name: Update cloudflare mirrorprotocol.is
     steps:
       - name: Update CloudFlare DNS with new IPFS hash
         env:
