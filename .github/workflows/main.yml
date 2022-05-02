@@ -1,8 +1,14 @@
 name: deploy
 on:
+<<<<<<< HEAD
   # push:
   #   branches:
   #     - main
+=======
+  push:
+    branches:
+      - main
+>>>>>>> main
   workflow_dispatch:
 
 jobs:
@@ -40,9 +46,16 @@ jobs:
       - name: Get the output hash
         run: echo "The hash was ${{ steps.deploy.outputs.hash }}"
 
+  update_cloudflare:
+    runs-on: ubuntu-latest
+    name: Update cloudflare
+    strategy:
+      matrix:
+        zone_id: ["4f21ee71322ab9d9d946f3e381415175", "d5f6cfc820e8956e3e493aa354464e5f", "cff51f05ed7d948f5ea310b27dd459a7"]
+    steps:
       - name: Update CloudFlare DNS with new IPFS hash
         env:
-          CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
+          CLOUDFLARE_ZONE_ID: ${{ matrix.zone_id }}
           CLOUDFLARE_TOKEN: ${{ secrets.CLOUDFLARE_TOKEN }}
           RECORD_DOMAIN: ''
           RECORD_NAME: '_dnslink'
