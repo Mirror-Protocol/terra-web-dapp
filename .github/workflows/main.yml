@@ -36,11 +36,15 @@ jobs:
           pinata-api-key: ${{ secrets.PINATA_API_KEY }}
           pinata-secret-api-key: ${{ secrets.PINATA_SECRET_API_KEY }}
 
-      # Use the output from the `deploy` step
       - name: Get the output hash
         run: echo "The hash was ${{ steps.deploy.outputs.hash }}"
 
+    # Use the output from the `deploy` step
+    outputs:
+      ipfs_hash: ${{ steps.deploy.outputs.hash }}
+
   update_cloudflare:
+    needs: [deploy_pinata]
     runs-on: ubuntu-latest
     name: Update cloudflare
     strategy:
@@ -55,4 +59,4 @@ jobs:
           RECORD_NAME: '_dnslink'
         uses: textileio/cloudflare-update-dnslink@v2
         with:
-          cid: ${{ steps.deploy.outputs.hash }}
+          cid: ${{ needs.deploy_pinata.outputs.ipfs_hash }}
