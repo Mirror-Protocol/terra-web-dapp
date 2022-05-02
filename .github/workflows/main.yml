@@ -49,7 +49,7 @@ jobs:
     name: Update cloudflare
     strategy:
       matrix:
-        zone_id: [{{ secrets.APP_ZONE_ID }}, {{ secrets.CH_ZONE_ID }}, {{ secrets.IS_ZONE_ID }}]
+        zone_id: ["${{ secrets.APP_ZONE_ID }}", "${{ secrets.CH_ZONE_ID }}", "${{ secrets.IS_ZONE_ID }}"]
     steps:
       - name: Update CloudFlare DNS with new IPFS hash
         env:
