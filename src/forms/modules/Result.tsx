@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { useQuery } from "react-query"
-import { useRecoilValue, useSetRecoilState } from "recoil"
+import { useRecoilValue } from "recoil"
 import { LocationDescriptor } from "history"
 import { TxResult, UserDenied } from "@terra-money/wallet-provider"
 
@@ -10,7 +10,6 @@ import { getPath, MenuKey } from "../../routes"
 
 import Wait, { STATUS } from "../../components/Wait"
 import { getTxInfosQuery } from "../../data/native/tx"
-import { bankBalanceIndexState } from "../../data/native/balance"
 import { concatFromContract } from "../receipts/receiptHelpers"
 import TxInfo from "./TxInfo"
 import { PostError } from "./FormContainer"
@@ -54,16 +53,13 @@ const Result = ({ response, error, parseTx, onFailure, ...props }: Props) => {
     success && hash && setRefetchInterval(TX_POLLING_INTERVAL)
   }, [success, hash])
 
-  const setBankBalanceIndexState = useSetRecoilState(bankBalanceIndexState)
-
   useEffect(() => {
     if (status === STATUS.LOADING) {
       setRefetchInterval(TX_POLLING_INTERVAL)
     } else {
       setRefetchInterval(false)
-      setBankBalanceIndexState((n) => n + 1)
     }
-  }, [status, setBankBalanceIndexState])
+  }, [status])
 
   /* verbose */
   const verbose = txInfo

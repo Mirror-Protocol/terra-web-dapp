@@ -1,9 +1,12 @@
+import { useQuery } from "react-query"
 import { atom, selector } from "recoil"
+import { fromPairs } from "ramda"
+import { useLCDClient } from "@terra-money/wallet-provider"
 import { div, gt, times } from "../../libs/math"
+import { useAddress } from "../../hooks"
 import { PriceKey, BalanceKey, StakingKey } from "../../hooks/contractKeys"
 import { useStore, useStoreLoadable } from "../utils/loadable"
 import { exchangeRatesQuery } from "../native/exchange"
-import { bankBalanceQuery } from "../native/balance"
 import { useExternalBalances } from "../external/external"
 import { useExternalPrices } from "../external/external"
 import { protocolQuery, useProtocol } from "./protocol"
@@ -71,17 +74,6 @@ const endPricesState = atom<Dictionary>({
 })
 
 /* balance */
-export const nativeBalancesQuery = selector({
-  key: "nativeBalances",
-  get: ({ get }) =>
-    reduceByDenom(get(bankBalanceQuery)?.BankBalancesAddress?.Result ?? []),
-})
-
-const nativeBalancesState = atom<Dictionary>({
-  key: "nativeBalancesState",
-  default: {},
-})
-
 export const tokenBalancesQuery = selector({
   key: "tokenBalances",
   get: ({ get }) => {
@@ -239,7 +231,17 @@ export const useEndPrices = () => {
 
 /* store: balance */
 export const useNativeBalances = () => {
-  return useStore(nativeBalancesQuery, nativeBalancesState)
+  const lcd = useLCDClient()
+  const address = useAddress()
+
+  const { data } = useQuery("nativebalance", async () => {
+    const [balance] = await lcd.bank.balance(address)
+    return fromPairs(
+      balance.toArray().map(({ amount, denom }) => [denom, amount.toString()])
+    )
+  })
+
+  return data ?? {}
 }
 
 export const useTokenBalances = () => {
@@ -317,7 +319,7 @@ export const useFindBalance = () => {
   const externalBalances = useExternalBalances()
 
   const dictionary = {
-    [BalanceKey.NATIVE]: nativeBalances.contents,
+    [BalanceKey.NATIVE]: nativeBalances,
     [BalanceKey.TOKEN]: tokenBalances.contents,
     [BalanceKey.EXTERNAL]: externalBalances.contents,
   }
@@ -409,9 +411,3 @@ const reduceNativePrice = (coins: MantleCoin[]): Dictionary => ({
   uusd: "1",
   uluna: coins.find(({ Denom }) => Denom === "uusd")?.Amount ?? "0",
 })
-
-const reduceByDenom = (coins: MantleCoin[]) =>
-  coins.reduce<Dictionary>(
-    (acc, { Amount, Denom }) => ({ ...acc, [Denom]: Amount }),
-    {}
-  )
