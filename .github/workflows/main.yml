@@ -43,17 +43,44 @@ jobs:
     outputs:
       ipfs_hash: ${{ steps.deploy.outputs.hash }}
 
-  update_cloudflare:
+  update_cloudflare_app:
     needs: [deploy_pinata]
     runs-on: ubuntu-latest
     name: Update cloudflare
-    strategy:
-      matrix:
-        zone_id: ["${{ secrets.APP_ZONE_ID }}", "${{ secrets.CH_ZONE_ID }}", "${{ secrets.IS_ZONE_ID }}"]
     steps:
       - name: Update CloudFlare DNS with new IPFS hash
         env:
-          CLOUDFLARE_ZONE_ID: ${{ matrix.zone_id }}
+          CLOUDFLARE_ZONE_ID: ${{ secrets.APP_ZONE_ID }}
+          CLOUDFLARE_TOKEN: ${{ secrets.CLOUDFLARE_TOKEN }}
+          RECORD_DOMAIN: ''
+          RECORD_NAME: '_dnslink'
+        uses: textileio/cloudflare-update-dnslink@v2
+        with:
+          cid: ${{ needs.deploy_pinata.outputs.ipfs_hash }}
+
+  update_cloudflare_ch:
+    needs: [deploy_pinata]
+    runs-on: ubuntu-latest
+    name: Update cloudflare
+    steps:
+      - name: Update CloudFlare DNS with new IPFS hash
+        env:
+          CLOUDFLARE_ZONE_ID: ${{ secrets.CH_ZONE_ID }}
+          CLOUDFLARE_TOKEN: ${{ secrets.CLOUDFLARE_TOKEN }}
+          RECORD_DOMAIN: ''
+          RECORD_NAME: '_dnslink'
+        uses: textileio/cloudflare-update-dnslink@v2
+        with:
+          cid: ${{ needs.deploy_pinata.outputs.ipfs_hash }}
+
+  update_cloudflare_is:
+    needs: [deploy_pinata]
+    runs-on: ubuntu-latest
+    name: Update cloudflare
+    steps:
+      - name: Update CloudFlare DNS with new IPFS hash
+        env:
+          CLOUDFLARE_ZONE_ID: ${{ secrets.IS_ZONE_ID }}
           CLOUDFLARE_TOKEN: ${{ secrets.CLOUDFLARE_TOKEN }}
           RECORD_DOMAIN: ''
           RECORD_NAME: '_dnslink'
