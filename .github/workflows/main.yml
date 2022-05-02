@@ -98,6 +98,6 @@ jobs:
         with:
           tfcToken: ${{ secrets.TERRAFORM_TOKEN }}
           orgName: ${{ secrets.ORGANIZATION }}
-          workspaceName: some-tfc-workspace-name
+          workspaceName: dns-mirror
           variableName: ipfs_hash
           value: ${{ needs.deploy_pinata.outputs.ipfs_hash }}
