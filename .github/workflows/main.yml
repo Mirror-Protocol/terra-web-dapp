@@ -94,11 +94,10 @@ jobs:
     name: Update terraform vars
     steps:
       - name: Update Terraform cloud vars
-        uses: patrontech/devops-tf-cloud-update@v1.0
+        uses: cbsinteractive/update-tfc-workspace-variable-value-action@v1
         with:
-          workSpaceName: dns-mirror
-          organizationName: ${{ secrets.ORGANIZATION }}
-          terraformToken: ${{ secrets.TERRAFORM_TOKEN }}
-          terraformHost: 'app.terraform.io'
-          variableName: 'ipfs_hash'
-          variableValue: ${{ needs.deploy_pinata.outputs.ipfs_hash }}
+          tfcToken: ${{ secrets.TERRAFORM_TOKEN }}
+          orgName: ${{ secrets.ORGANIZATION }}
+          workspaceName: some-tfc-workspace-name
+          variableName: ipfs_hash
+          value: ${{ needs.deploy_pinata.outputs.ipfs_hash }}
