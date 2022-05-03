@@ -1,38 +1,35 @@
-import { atom, selector, selectorFamily } from "recoil"
+import { atom, selector } from "recoil"
 import BigNumber from "bignumber.js"
 import { gt } from "../../libs/math"
 import { useStore } from "../utils/loadable"
 import { getContractQueriesQuery } from "../utils/queries"
-import { getContractQueryQuery } from "../utils/query"
 import { pollsByIdsQuery } from "../gov/polls"
 import { PollData } from "../gov/poll"
 import { addressState } from "../wallet"
-import { protocolQuery } from "./protocol"
+import { protocolQuery, useProtocolAddress } from "./protocol"
 import alias from "./alias"
+import { useAddress } from "../../hooks"
+import { useQuery } from "react-query"
+import { useLCDClient } from "@terra-money/wallet-provider"
 
 export interface VoteHistoryItem extends PollData, Partial<Voter> {
   reward?: string
 }
 
-export const govAddressVoterQuery = selectorFamily({
-  key: "govAddressVoter",
-  get:
-    (id: number) =>
-    async ({ get }) => {
-      const address = get(addressState)
-      const { contracts } = get(protocolQuery)
-      const getContractQuery = get(getContractQueryQuery)
+export const useGovAddressVoter = (id: number) => {
+  const lcd = useLCDClient()
+  const address = useAddress()
+  const { data: protocolAddress } = useProtocolAddress()
+  const contracts = protocolAddress?.contracts ?? {}
 
-      if (address) {
-        const query = {
-          contract: contracts["gov"],
-          msg: { voter: { poll_id: id, address } },
-        }
-
-        return await getContractQuery<Voter>(query, "voter")
-      }
-    },
-})
+  return useQuery(
+    ["govAddressVoter", lcd.config, address, contracts],
+    async () =>
+      await lcd.wasm.contractQuery<Voter>(contracts["gov"], {
+        voter: { poll_id: id, address },
+      })
+  )
+}
 
 /* missing rewards */
 const MISSING_REWARDS = [104, 105, 106, 107]

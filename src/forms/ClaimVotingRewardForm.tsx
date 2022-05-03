@@ -1,10 +1,9 @@
 import { useRouteMatch } from "react-router-dom"
-import { useRecoilValue } from "recoil"
 import useNewContractMsg from "../libs/useNewContractMsg"
 import { gt, plus } from "../libs/math"
 import { useProtocol } from "../data/contract/protocol"
 import { useFindBalance } from "../data/contract/normalize"
-import { calcVotingRewards, govAddressVoterQuery } from "../data/contract/gov"
+import { calcVotingRewards, useGovAddressVoter } from "../data/contract/gov"
 import { usePoll } from "../data/gov/poll"
 import Formatted from "../components/Formatted"
 import Container from "../components/Container"
@@ -18,7 +17,7 @@ const ClaimVotingRewardForm = () => {
   const { contracts, getToken } = useProtocol()
   const { contents: findBalance } = useFindBalance()
   const poll = usePoll(id)
-  const voter = useRecoilValue(govAddressVoterQuery(id))
+  const { data: voter } = useGovAddressVoter(id)
   const balance = findBalance(getToken("MIR"))
   const claiming = poll && voter ? calcVotingRewards(poll, voter) : "0"
 
