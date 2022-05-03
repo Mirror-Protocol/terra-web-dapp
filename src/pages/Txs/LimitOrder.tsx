@@ -12,7 +12,7 @@ const CancelOrder = () => {
   const { params } = useRouteMatch<{ id: string }>()
   const { id } = params
 
-  const parsed = useLimitOrder(Number(id))
+  const { data: parsed } = useLimitOrder(Number(id))
 
   return !parsed ? null : (
     <Page>

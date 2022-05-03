@@ -1,24 +1,16 @@
-import { selectorFamily, useRecoilValue } from "recoil"
-import { protocolQuery } from "./protocol"
-import { getContractQueryQuery } from "../utils/query"
-
-export const limitOrderQuery = selectorFamily({
-  key: "limitOrder",
-  get:
-    (id: number) =>
-    async ({ get }) => {
-      const { contracts } = get(protocolQuery)
-      const getContractQuery = get(getContractQueryQuery)
-      return await getContractQuery<Order>(
-        {
-          contract: contracts["limitOrder"],
-          msg: { order: { order_id: id } },
-        },
-        "limitOrder"
-      )
-    },
-})
+import { useQuery } from "react-query"
+import { useLCDClient } from "@terra-money/wallet-provider"
+import { useProtocolAddress } from "./protocol"
 
 export const useLimitOrder = (id: number) => {
-  return useRecoilValue(limitOrderQuery(id))
+  const lcd = useLCDClient()
+  const { data: protocolAddress } = useProtocolAddress()
+  const contracts = protocolAddress?.contracts ?? {}
+  return useQuery(
+    ["limitOrder", lcd.config, id, contracts],
+    async () =>
+      await lcd.wasm.contractQuery<Order>(contracts["limitOrder"], {
+        order: { order_id: id },
+      })
+  )
 }
