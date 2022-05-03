@@ -13,7 +13,7 @@ const Poll = () => {
   const { params } = useRouteMatch<{ id: string }>()
   const id = Number(params.id)
 
-  const poll = usePoll(id)
+  const { data: poll } = usePoll(id)
 
   return !poll ? null : (
     <Page title={MenuKey.POLL}>

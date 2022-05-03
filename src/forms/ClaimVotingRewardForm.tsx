@@ -16,7 +16,7 @@ const ClaimVotingRewardForm = () => {
   /* context */
   const { contracts, getToken } = useProtocol()
   const { contents: findBalance } = useFindBalance()
-  const poll = usePoll(id)
+  const { data: poll } = usePoll(id)
   const { data: voter } = useGovAddressVoter(id)
   const balance = findBalance(getToken("MIR"))
   const claiming = poll && voter ? calcVotingRewards(poll, voter) : "0"
