@@ -14,7 +14,7 @@ export const useMyFarming = () => {
   const { whitelist, listedAll, getToken, getIsDelisted } = useProtocol()
   const { contents: findStaking, isLoading } = useFindStaking()
   const findPrice = useFindPrice()
-  const { contents: rewards, isLoading: isLoadingRewards } = useRewards()
+  const rewards = useRewards()
   const getPool = usePool()
   const getMirrorTerraswapPool = useMirrorTerraswapPool()
   const assetsAPR = useAssetsAPR()
@@ -88,6 +88,6 @@ export const useMyFarming = () => {
     totalAstroTokenReward,
     totalRewardsValue,
     totalWithdrawableValue,
-    isLoading: isLoading || isLoadingRewards,
+    isLoading: isLoading,
   }
 }

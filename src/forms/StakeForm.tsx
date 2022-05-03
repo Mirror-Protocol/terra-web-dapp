@@ -57,7 +57,7 @@ const StakeForm = ({ type, tab, gov, ...props }: Props) => {
   const { contents: findBalance } = useFindBalance()
   const { contents: findStaking } = useFindStaking()
   const { contents: govStaked } = useGovStaked()
-  const { contents: govStaker } = useGovStaker()
+  const { data: govStaker } = useGovStaker()
 
   const getPool = usePool()
   const getMirrorTerraswapPool = useMirrorTerraswapPool()

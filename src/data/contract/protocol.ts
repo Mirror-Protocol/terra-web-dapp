@@ -1,10 +1,19 @@
+import { useQuery } from "react-query"
 import { selector, useRecoilValue } from "recoil"
 import axios from "axios"
 import { ICON_URL } from "../../constants"
 import { getIsTokenNative, lookupSymbol } from "../../libs/parse"
 import { BalanceKey, PriceKey } from "../../hooks/contractKeys"
 import { whitelistExternalQuery } from "../external/external"
-import { networkQuery } from "../network"
+import { networkQuery, useNetwork } from "../network"
+
+export const useProtocolAddress = () => {
+  const { contract: url } = useNetwork()
+  return useQuery(["protocolAddress", url], async () => {
+    const { data } = await axios.get<ProtocolJSON>(url)
+    return data
+  })
+}
 
 const protocolAddressQuery = selector({
   key: "protocolAddress",

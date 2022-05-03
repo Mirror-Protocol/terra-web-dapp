@@ -11,7 +11,7 @@ export const useMyShortFarming = () => {
   const { listedAll, getToken, getIsDelisted } = useProtocol()
   const { contents: findStaking, isLoading } = useFindStaking()
   const findPrice = useFindPrice()
-  const { contents: rewards, isLoading: isLoadingRewards } = useRewards()
+  const rewards = useRewards()
   const myLockedUST = useMyLockedUST()
   const assetsAPR = useAssetsAPR()
 
@@ -52,6 +52,6 @@ export const useMyShortFarming = () => {
     dataSource,
     totalRewards,
     totalRewardsValue,
-    isLoading: isLoading || isLoadingRewards,
+    isLoading: isLoading,
   }
 }

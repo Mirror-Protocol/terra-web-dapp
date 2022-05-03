@@ -15,7 +15,7 @@ const ClaimRewardsForm = () => {
   const { whitelist, contracts, getToken } = useProtocol()
   const { astro } = useNetwork()
   const { contents: findBalance } = useFindBalance()
-  const { contents: rewards } = useRewards()
+  const rewards = useRewards()
   const { data: astroPendingRewards } = useAstroPendingRewards()
 
   const balance = findBalance(getToken("MIR"))

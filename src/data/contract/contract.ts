@@ -1,10 +1,13 @@
+import { useQuery } from "react-query"
 import { atom, selector } from "recoil"
-import { useStore, useStoreLoadable } from "../utils/loadable"
+import { useLCDClient } from "@terra-money/wallet-provider"
+import { useAddress } from "../../hooks"
+import { useStoreLoadable } from "../utils/loadable"
 import { getListedContractQueriesQuery } from "../utils/queries"
 import { getContractQueryQuery } from "../utils/query"
 import { priceKeyIndexState } from "../app"
 import { addressState } from "../wallet"
-import { protocolQuery } from "./protocol"
+import { protocolQuery, useProtocolAddress } from "./protocol"
 
 export const pairPoolQuery = selector({
   key: "pairPool",
@@ -89,29 +92,31 @@ export const lpTokenBalanceQuery = selector({
   },
 })
 
-export const stakingRewardInfoQuery = selector({
-  key: "stakingRewardInfo",
-  get: async ({ get }) => {
-    const address = get(addressState)
+export const useStakingRewardInfo = () => {
+  const lcd = useLCDClient()
+  const address = useAddress()
+  const { data: protocolAddress } = useProtocolAddress()
+  const contract = protocolAddress?.contracts["staking"] ?? ""
+  return useQuery(
+    ["stakingRewardInfo", address, contract, protocolAddress, lcd.config],
+    async () =>
+      await lcd.wasm.contractQuery<StakingRewardInfo>(contract, {
+        reward_info: { staker_addr: address },
+      })
+  )
+}
 
-    if (address) {
-      const { contracts } = get(protocolQuery)
-      const getContractQuery = get(getContractQueryQuery)
-      return await getContractQuery<StakingRewardInfo>(
-        {
-          contract: contracts["staking"],
-          msg: { reward_info: { staker_addr: address } },
-        },
-        "stakingRewardInfo"
-      )
-    }
-  },
-})
-
-export const stakingRewardInfoState = atom<StakingRewardInfo | undefined>({
-  key: "stakingRewardInfoState",
-  default: undefined,
-})
+export const useGovStaker = () => {
+  const lcd = useLCDClient()
+  const address = useAddress()
+  const { data: protocolAddress } = useProtocolAddress()
+  const contract = protocolAddress?.contracts["gov"] ?? ""
+  return useQuery(
+    ["govStaker", address, protocolAddress, contract, lcd.config],
+    async () =>
+      await lcd.wasm.contractQuery<GovStaker>(contract, { staker: { address } })
+  )
+}
 
 export const govStakerQuery = selector({
   key: "govStaker",
@@ -129,20 +134,7 @@ export const govStakerQuery = selector({
   },
 })
 
-const govStakerState = atom<GovStaker | undefined>({
-  key: "govStakerState",
-  default: undefined,
-})
-
 /* hooks */
 export const usePairPool = () => {
   return useStoreLoadable(pairPoolQuery, pairPoolState)
-}
-
-export const useStakingRewardInfo = () => {
-  return useStoreLoadable(stakingRewardInfoQuery, stakingRewardInfoState)
-}
-
-export const useGovStaker = () => {
-  return useStore(govStakerQuery, govStakerState)
 }

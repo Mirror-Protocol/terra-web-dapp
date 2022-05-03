@@ -31,7 +31,7 @@ const TotalValue = () => {
 
   /* Claim */
   const MIRPrice = useMIRPrice()
-  const { contents: rewards } = useRewards()
+  const rewards = useRewards()
   const { data: astroPendingRewards } = useAstroPendingRewards()
 
   const claimAll = (

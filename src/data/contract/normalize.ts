@@ -11,9 +11,14 @@ import { useExternalBalances } from "../external/external"
 import { useExternalPrices } from "../external/external"
 import { protocolQuery, useProtocol } from "./protocol"
 import { collateralOracleAssetInfoQuery } from "./collateral"
-import { pairPoolQuery, oraclePriceQuery, usePairPool } from "./contract"
+import {
+  pairPoolQuery,
+  oraclePriceQuery,
+  usePairPool,
+  useStakingRewardInfo,
+} from "./contract"
 import { tokenBalanceQuery, lpTokenBalanceQuery } from "./contract"
-import { mintAssetConfigQuery, stakingRewardInfoQuery } from "./contract"
+import { mintAssetConfigQuery } from "./contract"
 import { govStakerQuery } from "./contract"
 
 /* price */
@@ -100,57 +105,25 @@ const lpStakableBalancesState = atom<Dictionary>({
   default: {},
 })
 
-export const lpStakedBalancesQuery = selector({
-  key: "lpStakedBalances",
-  get: ({ get }) => {
-    const result = get(stakingRewardInfoQuery)
-    return result ? reduceStakingReward(result, "bond_amount") : {}
-  },
-})
+export const useLpStakedBalances = () => {
+  const { data: result } = useStakingRewardInfo()
+  return result ? reduceStakingReward(result, "bond_amount") : {}
+}
 
-const lpStakedBalancesState = atom<Dictionary>({
-  key: "lpStakedBalancesState",
-  default: {},
-})
+export const useSlpStakedBalances = () => {
+  const { data: result } = useStakingRewardInfo()
+  return result ? reduceStakingReward(result, "bond_amount", true) : {}
+}
 
-export const slpStakedBalancesQuery = selector({
-  key: "slpStakedBalances",
-  get: ({ get }) => {
-    const result = get(stakingRewardInfoQuery)
-    return result ? reduceStakingReward(result, "bond_amount", true) : {}
-  },
-})
+export const useLpRewardBalances = () => {
+  const { data: result } = useStakingRewardInfo()
+  return result ? reduceStakingReward(result, "pending_reward") : {}
+}
 
-const slpStakedBalancesState = atom<Dictionary>({
-  key: "slpStakedBalancesState",
-  default: {},
-})
-
-export const lpRewardBalancesQuery = selector({
-  key: "lpRewardBalances",
-  get: ({ get }) => {
-    const result = get(stakingRewardInfoQuery)
-    return result ? reduceStakingReward(result, "pending_reward") : {}
-  },
-})
-
-const lpRewardBalancesState = atom<Dictionary>({
-  key: "lpRewardBalancesState",
-  default: {},
-})
-
-export const slpRewardBalancesQuery = selector({
-  key: "slpRewardBalances",
-  get: ({ get }) => {
-    const result = get(stakingRewardInfoQuery)
-    return result ? reduceStakingReward(result, "pending_reward", true) : {}
-  },
-})
-
-const slpRewardBalancesState = atom<Dictionary>({
-  key: "slpRewardBalancesState",
-  default: {},
-})
+export const useSlpRewardBalances = () => {
+  const { data: result } = useStakingRewardInfo()
+  return result ? reduceStakingReward(result, "pending_reward", true) : {}
+}
 
 export const govStakedQuery = selector({
   key: "govStaked",
@@ -253,22 +226,6 @@ export const useLpStakableBalances = () => {
   return useStore(lpStakableBalancesQuery, lpStakableBalancesState)
 }
 
-export const useLpStakedBalances = () => {
-  return useStore(lpStakedBalancesQuery, lpStakedBalancesState)
-}
-
-export const useSlpStakedBalances = () => {
-  return useStore(slpStakedBalancesQuery, slpStakedBalancesState)
-}
-
-export const useLpRewardBalances = () => {
-  return useStore(lpRewardBalancesQuery, lpRewardBalancesState)
-}
-
-export const useSlpRewardBalances = () => {
-  return useStore(slpRewardBalancesQuery, slpRewardBalancesState)
-}
-
 export const useGovStaked = () => {
   return useStore(govStakedQuery, govStakedState)
 }
@@ -341,10 +298,10 @@ export const useFindStaking = () => {
 
   const dictionary = {
     [StakingKey.LPSTAKABLE]: lpStakableBalances.contents,
-    [StakingKey.LPSTAKED]: lpStakedBalances.contents,
-    [StakingKey.SLPSTAKED]: slpStakedBalances.contents,
-    [StakingKey.LPREWARD]: lpRewardBalances.contents,
-    [StakingKey.SLPREWARD]: slpRewardBalances.contents,
+    [StakingKey.LPSTAKED]: lpStakedBalances,
+    [StakingKey.SLPSTAKED]: slpStakedBalances,
+    [StakingKey.LPREWARD]: lpRewardBalances,
+    [StakingKey.SLPREWARD]: slpRewardBalances,
   }
 
   return {

@@ -23,7 +23,7 @@ export const govVotersQuery = selectorFamily({
 })
 
 export const useGetVoted = () => {
-  const { contents: govStaker } = useGovStaker()
+  const { data: govStaker } = useGovStaker()
 
   return (id: number) =>
     govStaker?.locked_balance.some(

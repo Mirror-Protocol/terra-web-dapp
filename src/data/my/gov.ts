@@ -11,7 +11,7 @@ const useVoteHistory = (): {
   contents: VoteHistoryItem[]
   isLoading: boolean
 } => {
-  const { contents: govStaker, isLoading: isLoadingStaker } = useGovStaker()
+  const { data: govStaker, isLoading: isLoadingStaker } = useGovStaker()
   const { contents: missingRewards, isLoading: isMissingRewardsLoading } =
     useMissingRewards()
 
@@ -60,7 +60,7 @@ export const useMyGov = () => {
 
   const findPrice = useFindPrice()
   const { contents: govStaked, isLoading: isLoadingStaked } = useGovStaked()
-  const { contents: govStaker, isLoading: isLoadingStaker } = useGovStaker()
+  const { data: govStaker, isLoading: isLoadingStaker } = useGovStaker()
   const { contents: dataSource, isLoading: isLoadingHistory } = useVoteHistory()
 
   const price = findPrice(priceKey, mir)
