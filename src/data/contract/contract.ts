@@ -4,7 +4,6 @@ import { useLCDClient } from "@terra-money/wallet-provider"
 import { useAddress } from "../../hooks"
 import { useStoreLoadable } from "../utils/loadable"
 import { getListedContractQueriesQuery } from "../utils/queries"
-import { getContractQueryQuery } from "../utils/query"
 import { priceKeyIndexState } from "../app"
 import { addressState } from "../wallet"
 import { protocolQuery, useProtocolAddress } from "./protocol"
@@ -117,22 +116,6 @@ export const useGovStaker = () => {
       await lcd.wasm.contractQuery<GovStaker>(contract, { staker: { address } })
   )
 }
-
-export const govStakerQuery = selector({
-  key: "govStaker",
-  get: async ({ get }) => {
-    const address = get(addressState)
-
-    if (address) {
-      const { contracts } = get(protocolQuery)
-      const getContractQuery = get(getContractQueryQuery)
-      return await getContractQuery<GovStaker>(
-        { contract: contracts["gov"], msg: { staker: { address } } },
-        "govStaker"
-      )
-    }
-  },
-})
 
 /* hooks */
 export const usePairPool = () => {

@@ -1,6 +1,6 @@
 import { selector } from "recoil"
 import { sum } from "../../libs/math"
-import { govStakerQuery, useGovStaker } from "../contract/contract"
+import { useGovStaker } from "../contract/contract"
 import { missingRewardsQuery } from "../contract/gov"
 import { useLpRewardBalances } from "../contract/normalize"
 import { useSlpRewardBalances } from "../contract/normalize"
@@ -18,11 +18,6 @@ export const useVotingRewards = () => {
   const { data: govStaker } = useGovStaker()
   return govStaker?.pending_voting_rewards ?? "0"
 }
-
-export const votingRewardsQuery = selector({
-  key: "votingRewards",
-  get: ({ get }) => get(govStakerQuery)?.pending_voting_rewards ?? "0",
-})
 
 export const missingRewardsTotalQuery = selector({
   key: "missingRewardsTotal",

@@ -16,10 +16,10 @@ import {
   oraclePriceQuery,
   usePairPool,
   useStakingRewardInfo,
+  useGovStaker,
 } from "./contract"
 import { tokenBalanceQuery, lpTokenBalanceQuery } from "./contract"
 import { mintAssetConfigQuery } from "./contract"
-import { govStakerQuery } from "./contract"
 
 /* price */
 export const nativePricesQuery = selector({
@@ -125,15 +125,10 @@ export const useSlpRewardBalances = () => {
   return result ? reduceStakingReward(result, "pending_reward", true) : {}
 }
 
-export const govStakedQuery = selector({
-  key: "govStaked",
-  get: ({ get }) => get(govStakerQuery)?.balance ?? "0",
-})
-
-const govStakedState = atom({
-  key: "govStakedState",
-  default: "0",
-})
+export const useGovStaked = () => {
+  const { data: govStaker } = useGovStaker()
+  return govStaker?.balance ?? "0"
+}
 
 /* protocol - asset info */
 export const minCollateralRatioQuery = selector({
@@ -224,10 +219,6 @@ export const useTokenBalances = () => {
 /* store: staking balance */
 export const useLpStakableBalances = () => {
   return useStore(lpStakableBalancesQuery, lpStakableBalancesState)
-}
-
-export const useGovStaked = () => {
-  return useStore(govStakedQuery, govStakedState)
 }
 
 /* store: asset info */

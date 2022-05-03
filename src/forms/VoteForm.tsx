@@ -1,6 +1,5 @@
 import { useEffect } from "react"
 import { useRouteMatch } from "react-router-dom"
-import { useRecoilValue } from "recoil"
 import classNames from "classnames/bind"
 
 import MESSAGE from "../lang/MESSAGE.json"
@@ -11,7 +10,7 @@ import { placeholder, step, validate as v } from "../libs/formHelpers"
 import { renderBalance } from "../libs/formHelpers"
 import useNewContractMsg from "../libs/useNewContractMsg"
 import { useProtocol } from "../data/contract/protocol"
-import { govStakedQuery } from "../data/contract/normalize"
+import { useGovStaked } from "../data/contract/normalize"
 
 import FormGroup from "../components/FormGroup"
 import Container from "../components/Container"
@@ -37,7 +36,7 @@ const VoteForm = ({ tab }: { tab: Tab }) => {
 
   /* context */
   const { contracts } = useProtocol()
-  const govStaked = useRecoilValue(govStakedQuery)
+  const govStaked = useGovStaked()
   const { params } = useRouteMatch<{ id: string }>()
   const id = Number(params.id)
 

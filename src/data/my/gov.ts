@@ -59,7 +59,7 @@ export const useMyGov = () => {
   const mir = getToken("MIR")
 
   const findPrice = useFindPrice()
-  const { contents: govStaked, isLoading: isLoadingStaked } = useGovStaked()
+  const govStaked = useGovStaked()
   const { data: govStaker, isLoading: isLoadingStaker } = useGovStaker()
   const { contents: dataSource, isLoading: isLoadingHistory } = useVoteHistory()
 
@@ -78,6 +78,6 @@ export const useMyGov = () => {
     stakedValue,
     votingRewards,
     votingRewardsValue,
-    isLoading: isLoadingStaked || isLoadingStaker || isLoadingHistory,
+    isLoading: isLoadingStaker || isLoadingHistory,
   }
 }

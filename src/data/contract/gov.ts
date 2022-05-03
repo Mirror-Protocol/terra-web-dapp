@@ -1,5 +1,8 @@
+import { useQuery } from "react-query"
 import { atom, selector } from "recoil"
 import BigNumber from "bignumber.js"
+import { useLCDClient } from "@terra-money/wallet-provider"
+import { useAddress } from "../../hooks"
 import { gt } from "../../libs/math"
 import { useStore } from "../utils/loadable"
 import { getContractQueriesQuery } from "../utils/queries"
@@ -8,9 +11,6 @@ import { PollData } from "../gov/poll"
 import { addressState } from "../wallet"
 import { protocolQuery, useProtocolAddress } from "./protocol"
 import alias from "./alias"
-import { useAddress } from "../../hooks"
-import { useQuery } from "react-query"
-import { useLCDClient } from "@terra-money/wallet-provider"
 
 export interface VoteHistoryItem extends PollData, Partial<Voter> {
   reward?: string
