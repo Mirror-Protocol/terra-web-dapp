@@ -83,7 +83,7 @@ const CreatePollForm = ({ type, headings }: Props) => {
   /* context */
   const { contracts, getToken, toAssetInfo, parseAssetInfo } = useProtocol()
   const { contents: findBalance } = useFindBalance()
-  const config = useGovConfig()
+  const { data: config } = useGovConfig()
   const communityConfig = useCommunityConfig()
   const mintAssetConfig = useRecoilValueLoadable(mintAssetConfigQuery)
   const multipliers = useRecoilValueLoadable(multipliersQuery)

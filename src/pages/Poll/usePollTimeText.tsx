@@ -3,7 +3,7 @@ import { Poll, PollStatus } from "../../data/gov/poll"
 import { toText } from "./pollHelpers"
 
 const usePollTimeText = (poll?: Poll) => {
-  const config = useGovConfig()
+  const { data: config } = useGovConfig()
 
   return !(poll && config)
     ? { label: "", text: "", toNow: "" }

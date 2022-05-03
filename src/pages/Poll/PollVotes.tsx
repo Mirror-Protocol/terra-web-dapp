@@ -47,7 +47,7 @@ const PollVotes = ({ lg, ...props }: Props) => {
     admin_action,
   } = props
   const state = useGovState()
-  const config = useGovConfig()
+  const { data: config } = useGovConfig()
 
   const sumVotes = sum([yes_votes ?? 0, no_votes ?? 0, abstain_votes ?? 0])
   const safeTotal = max([sumVotes, total_balance_at_end_poll ?? 0])

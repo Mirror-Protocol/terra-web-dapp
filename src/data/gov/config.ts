@@ -1,25 +1,15 @@
-import { atom, selector } from "recoil"
-import { protocolQuery } from "../contract/protocol"
-import { useStoreLoadable } from "../utils/loadable"
-import { getContractQueryQuery } from "../utils/query"
-
-export const govConfigQuery = selector({
-  key: "govConfig",
-  get: async ({ get }) => {
-    const { contracts } = get(protocolQuery)
-    const getContractQuery = get(getContractQueryQuery)
-    return await getContractQuery<GovConfig>(
-      { contract: contracts["gov"], msg: { config: {} } },
-      "govConfig"
-    )
-  },
-})
-
-const govConfigState = atom<GovConfig | undefined>({
-  key: "govConfigState",
-  default: undefined,
-})
+import { useLCDClient } from "@terra-money/wallet-provider"
+import { useQuery } from "react-query"
+import { useProtocolAddress } from "../contract/protocol"
 
 export const useGovConfig = () => {
-  return useStoreLoadable(govConfigQuery, govConfigState)
+  const lcd = useLCDClient()
+  const { data: protocolAddress } = useProtocolAddress()
+  const contracts = protocolAddress?.contracts ?? {}
+
+  return useQuery(
+    ["govConfig", lcd.config, contracts],
+    async () =>
+      await lcd.wasm.contractQuery<GovConfig>(contracts["gov"], { config: {} })
+  )
 }
