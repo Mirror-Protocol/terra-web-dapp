@@ -15,7 +15,7 @@ const Mint = ({ tabs = [MintType.EDIT, MintType.CLOSE] }: Props) => {
   const { search } = useLocation()
   const idx = new URLSearchParams(search).get("idx") || ""
 
-  const parsed = useMintPosition(idx)
+  const { data: parsed } = useMintPosition(idx)
   const invalid = Boolean(idx && !parsed)
 
   return (
