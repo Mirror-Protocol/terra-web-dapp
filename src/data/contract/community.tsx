@@ -8,9 +8,10 @@ const COMMUNITY_BALANCE_TOTAL = 128.1 // Million
 const COMMUNITY_BALANCES_ANNUAL = [36.6, 54.9, 91.5, 128.1] // Million
 
 const useCommunityBalance = () => {
-  const current = useMirrorTokenCommunityBalance()
+  const { data: current } = useMirrorTokenCommunityBalance()
   const totalSupply = parseMillion(COMMUNITY_BALANCE_TOTAL)
   const fundAnnual = parseMillion(getFundAnnual())
+  if (!current) return "0"
   return gt(current, 0) ? calc({ fundAnnual, totalSupply, current }) : "0"
 }
 

@@ -17,7 +17,7 @@ import { useProtocol } from "../data/contract/protocol"
 import { multipliersQuery } from "../data/contract/normalize"
 import { useFindBalance } from "../data/contract/normalize"
 import { useGovConfig } from "../data/gov/config"
-import { communityConfigQuery } from "../data/contract/info"
+import { useCommunityConfig } from "../data/contract/info"
 import { getDistributionWeightQuery } from "../data/contract/info"
 import { mintAssetConfigQuery } from "../data/contract/contract"
 import { ProxyItem } from "../data/contract/proxy"
@@ -84,7 +84,7 @@ const CreatePollForm = ({ type, headings }: Props) => {
   const { contracts, getToken, toAssetInfo, parseAssetInfo } = useProtocol()
   const { contents: findBalance } = useFindBalance()
   const config = useGovConfig()
-  const communityConfig = useRecoilValueLoadable(communityConfigQuery)
+  const communityConfig = useCommunityConfig()
   const mintAssetConfig = useRecoilValueLoadable(mintAssetConfigQuery)
   const multipliers = useRecoilValueLoadable(multipliersQuery)
   const getDistributionWeight = useRecoilValueLoadable(
@@ -95,8 +95,8 @@ const CreatePollForm = ({ type, headings }: Props) => {
   const { factory, community, gov, oracleHub } = contracts
 
   const spend_limit =
-    communityConfig.state === "hasValue"
-      ? communityConfig.contents?.spend_limit
+    communityConfig.status === "success"
+      ? communityConfig.data?.spend_limit
       : undefined
 
   const getMintAssetConfig = (token: string) =>

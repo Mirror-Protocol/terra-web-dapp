@@ -4,7 +4,7 @@ import { useMirrorTokenGovBalance } from "../contract/info"
 
 export const useTotalStaked = () => {
   const state = useGovState()
-  const balance = useMirrorTokenGovBalance()
+  const { data: balance } = useMirrorTokenGovBalance()
 
   return [balance, state?.total_deposit].every(isFinite)
     ? minus(balance, state?.total_deposit)

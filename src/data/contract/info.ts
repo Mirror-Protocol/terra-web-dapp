@@ -1,82 +1,93 @@
-import { atom, selector } from "recoil"
-import { useStoreLoadable } from "../utils/loadable"
+import { useLCDClient } from "@terra-money/wallet-provider"
+import { useQuery } from "react-query"
+import { selector } from "recoil"
 import { getContractQueryQuery } from "../utils/query"
-import { protocolQuery } from "./protocol"
+import { protocolQuery, useProtocolAddress } from "./protocol"
 
-export const mirrorTokenInfoQuery = selector({
-  key: "mirrorTokenInfo",
-  get: async ({ get }) => {
-    const { contracts } = get(protocolQuery)
-    const getContractQuery = get(getContractQueryQuery)
-    const response = await getContractQuery<{ total_supply: string }>(
-      {
-        contract: contracts["mirrorToken"],
-        msg: { token_info: {} },
-      },
-      "mirrorTokenInfo"
-    )
+export const useMirrorTokenInfo = () => {
+  const lcd = useLCDClient()
+  const { data: protocolAddress } = useProtocolAddress()
+  const contracts = protocolAddress?.contracts ?? {}
 
-    return response
-  },
-})
+  return useQuery(
+    ["mirrorTokenInfo", lcd.config, contracts],
+    async () =>
+      await lcd.wasm.contractQuery<{ total_supply: string }>(
+        contracts["mirrorToken"],
+        { token_info: {} }
+      )
+  )
+}
 
-export const mirrorTokenGovBalanceQuery = selector({
-  key: "mirrorTokenGovBalance",
-  get: async ({ get }) => {
-    const { contracts } = get(protocolQuery)
-    const getContractQuery = get(getContractQueryQuery)
-    const response = await getContractQuery<Balance>(
-      {
-        contract: contracts["mirrorToken"],
-        msg: { balance: { address: contracts["gov"] } },
-      },
-      "mirrorTokenGovBalance"
-    )
+export const useMirrorTokenGovBalance = () => {
+  const lcd = useLCDClient()
+  const { data: protocolAddress } = useProtocolAddress()
+  const contracts = protocolAddress?.contracts ?? {}
 
-    return response?.balance ?? "0"
-  },
-})
+  return useQuery(
+    ["mirrorTokenGovBalance", lcd.config, contracts],
+    async () => {
+      const { balance } = await lcd.wasm.contractQuery<Balance>(
+        contracts["mirrorToken"],
+        {
+          balance: { address: contracts["gov"] },
+        }
+      )
+      return balance
+    }
+  )
+}
 
-const mirrorTokenGovBalanceState = atom({
-  key: "mirrorTokenGovBalanceState",
-  default: "0",
-})
+export const useMirrorTokenCommunityBalance = () => {
+  const lcd = useLCDClient()
+  const { data: protocolAddress } = useProtocolAddress()
+  const contracts = protocolAddress?.contracts ?? {}
 
-export const mirrorTokenCommunityBalanceQuery = selector({
-  key: "mirrorTokenCommunityBalance",
-  get: async ({ get }) => {
-    const { contracts } = get(protocolQuery)
-    const getContractQuery = get(getContractQueryQuery)
-    const response = await getContractQuery<Balance>(
-      {
-        contract: contracts["mirrorToken"],
-        msg: { balance: { address: contracts["community"] } },
-      },
-      "mirrorTokenCommunityBalance"
-    )
+  return useQuery(
+    ["mirrorTokenCommunityBalance", lcd.config, contracts],
+    async () => {
+      const { balance } = await lcd.wasm.contractQuery<Balance>(
+        contracts["mirrorToken"],
+        {
+          balance: { address: contracts["community"] },
+        }
+      )
+      return balance
+    }
+  )
+}
 
-    return response?.balance ?? "0"
-  },
-})
+export const useCommunityConfig = () => {
+  const lcd = useLCDClient()
+  const { data: protocolAddress } = useProtocolAddress()
+  const contracts = protocolAddress?.contracts ?? {}
 
-const mirrorTokenCommunityBalanceState = atom({
-  key: "mirrorTokenCommunityBalanceState",
-  default: "0",
-})
+  return useQuery(
+    ["communityConfig", lcd.config, contracts],
+    async () =>
+      await lcd.wasm.contractQuery<{ spend_limit: string }>(
+        contracts["community"],
+        { config: {} }
+      )
+  )
+}
 
-export const communityConfigQuery = selector({
-  key: "communityConfig",
-  get: async ({ get }) => {
-    const { contracts } = get(protocolQuery)
-    const getContractQuery = get(getContractQueryQuery)
-    const response = await getContractQuery<{ spend_limit: string }>(
-      { contract: contracts["community"], msg: { config: {} } },
-      "communityConfig"
-    )
+export const useFactoryDistributionInfo = () => {
+  const lcd = useLCDClient()
+  const { data: protocolAddress } = useProtocolAddress()
+  const contracts = protocolAddress?.contracts ?? {}
 
-    return response
-  },
-})
+  return useQuery(
+    ["factoryDistributionInfo", lcd.config, contracts],
+    async () => {
+      const { weights } = await lcd.wasm.contractQuery<{
+        weights: DistributionWeight[]
+      }>(contracts["factory"], { distribution_info: {} })
+
+      return weights
+    }
+  )
+}
 
 export const factoryDistributionInfoQuery = selector({
   key: "factoryDistributionInfo",
@@ -102,18 +113,3 @@ export const getDistributionWeightQuery = selector({
     return (token: string) => weights?.find(([addr]) => addr === token)?.[1]
   },
 })
-
-/* store */
-export const useMirrorTokenGovBalance = () => {
-  return useStoreLoadable(
-    mirrorTokenGovBalanceQuery,
-    mirrorTokenGovBalanceState
-  )
-}
-
-export const useMirrorTokenCommunityBalance = () => {
-  return useStoreLoadable(
-    mirrorTokenCommunityBalanceQuery,
-    mirrorTokenCommunityBalanceState
-  )
-}
