@@ -1,11 +1,12 @@
 import classNames from "classnames"
-import { div, gt, max, sum, times } from "../../libs/math"
+import { div, gt, sum, times } from "../../libs/math"
 import { formatAsset } from "../../libs/parse"
 import { percent } from "../../libs/num"
 import { useGovConfig } from "../../data/gov/config"
 import { useGovState } from "../../data/gov/state"
 import { getConfig } from "../../data/gov/parse"
 import { AdminAction, Poll } from "../../data/gov/poll"
+import { useTotalStaked } from "../../data/gov/store"
 import Progress from "../../components/Progress"
 import styles from "./PollVotes.module.scss"
 
@@ -39,28 +40,23 @@ interface Props extends Poll {
 }
 
 const PollVotes = ({ lg, ...props }: Props) => {
-  const {
-    yes_votes,
-    no_votes,
-    abstain_votes,
-    total_balance_at_end_poll,
-    admin_action,
-  } = props
+  const { yes_votes = "0", no_votes = "0", abstain_votes = "0" } = props
+  const { staked_amount, total_balance_at_end_poll, admin_action } = props
+
   const state = useGovState()
   const config = useGovConfig()
+  const totalStaked = useTotalStaked()
 
-  const sumVotes = sum([yes_votes ?? 0, no_votes ?? 0, abstain_votes ?? 0])
-  const safeTotal = max([sumVotes, total_balance_at_end_poll ?? 0])
+  const safeTotal = total_balance_at_end_poll ?? staked_amount ?? totalStaked
 
   const votes = {
-    yes: yes_votes ?? "0",
-    no: no_votes ?? "0",
-    abstain: abstain_votes ?? "0",
-    total: total_balance_at_end_poll ? safeTotal : "0",
+    yes: yes_votes,
+    no: no_votes,
+    abstain: abstain_votes,
+    total: safeTotal,
   }
 
-  const parsed =
-    config && state && parseVotes(votes, config, state, admin_action)
+  const parsed = config && state && parseVotes(votes, config, admin_action)
 
   return !parsed ? null : (
     <>
@@ -76,18 +72,18 @@ export default PollVotes
 export const parseVotes = (
   votes: { yes: string; no: string; abstain: string; total: string },
   { ...config }: GovConfig,
-  { total_share }: GovState,
   admin_action?: AdminAction
 ) => {
   const { total } = votes
-  const yes = div(votes["yes"], gt(total, 0) ? total : total_share)
-  const no = div(votes["no"], gt(total, 0) ? total : total_share)
-  const abstain = div(votes["abstain"], gt(total, 0) ? total : total_share)
+  const yes = div(votes["yes"], total)
+  const no = div(votes["no"], total)
+  const abstain = div(votes["abstain"], total)
   const voted = sum([yes, no, abstain])
   const pollConfig = getConfig(config, admin_action)
 
   const quorum = pollConfig?.quorum || "0"
   const threshold = times(pollConfig?.threshold, voted)
+
   return {
     voted,
     quorum,

@@ -3,7 +3,12 @@ import { protocolQuery } from "../contract/protocol"
 import { useStoreLoadable } from "../utils/loadable"
 import { getContractQueryQuery } from "../utils/query"
 
-const INITIAL = { poll_count: 0, total_share: "0", total_deposit: "0" }
+const INITIAL = {
+  poll_count: 0,
+  total_share: "0",
+  total_deposit: "0",
+  pending_voting_rewards: "0",
+}
 
 export const govStateQuery = selector({
   key: "govState",

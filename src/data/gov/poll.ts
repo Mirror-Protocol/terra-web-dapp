@@ -44,6 +44,7 @@ export interface PollData {
   abstain_votes?: string
   total_balance_at_end_poll?: string
   voters_reward?: string
+  staked_amount?: string
 
   title: string
   description: string
