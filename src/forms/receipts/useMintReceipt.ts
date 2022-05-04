@@ -1,11 +1,10 @@
-import { useRecoilValue } from "recoil"
 import { div, times } from "../../libs/math"
 import { formatAsset } from "../../libs/parse"
 import { percent } from "../../libs/num"
 import { useProtocol } from "../../data/contract/protocol"
 import { MintType } from "../../types/Types"
 import { useFindPrice } from "../../data/contract/normalize"
-import { getMintPriceKeyQuery } from "../../data/contract/collateral"
+import { useGetMintPriceKey } from "../../data/contract/collateral"
 import { findPathFromContract, splitTokenText } from "./receiptHelpers"
 
 export default (type: MintType) => (logs: TxLog[]) => {
@@ -16,7 +15,7 @@ export default (type: MintType) => (logs: TxLog[]) => {
   /* context */
   const { getSymbol } = useProtocol()
   const find = useFindPrice()
-  const getPriceKey = useRecoilValue(getMintPriceKeyQuery)
+  const getPriceKey = useGetMintPriceKey()
 
   const fc = findPathFromContract(logs)
 

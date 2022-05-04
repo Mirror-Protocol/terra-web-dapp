@@ -23,8 +23,7 @@ import { PriceKey } from "../hooks/contractKeys"
 import useGetMax from "../hooks/useGetMax"
 import { useFindBalance } from "../data/contract/normalize"
 import { useFindPrice } from "../data/contract/normalize"
-import { useGetMinRatio } from "../data/contract/collateral"
-import { getMintPriceKeyQuery } from "../data/contract/collateral"
+import { useGetMinRatio, useGetMintPriceKey } from "../data/contract/collateral"
 
 import FormGroup from "../components/FormGroup"
 import Formatted from "../components/Formatted"
@@ -70,7 +69,7 @@ const MintForm = ({ position, type }: Props) => {
   const { contracts, listed, ...helpers } = useProtocol()
   const { getSymbol, getIsDelisted, parseToken, toToken, toAssetInfo } = helpers
 
-  const getPriceKey = useRecoilValue(getMintPriceKeyQuery)
+  const getPriceKey = useGetMintPriceKey()
   const getMinRatio = useGetMinRatio()
   const findPrice = useFindPrice()
   const { contents: findBalance, ...findBalanceStore } = useFindBalance()

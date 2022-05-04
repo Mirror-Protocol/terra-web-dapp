@@ -1,30 +1,24 @@
-import { selector } from "recoil"
 import { gt, times } from "../../libs/math"
 import { decimal } from "../../libs/parse"
 import { PriceKey } from "../../hooks/contractKeys"
 import { useWhitelistExternal } from "../external/external"
 import { useGetTokensContractQueries } from "../utils/queries"
 import { useMinCollateralRatio, useMultipliers } from "./normalize"
-import { protocolQuery, useProtocol } from "./protocol"
+import { useProtocol } from "./protocol"
 
-export const getMintPriceKeyQuery = selector({
-  key: "getMintPriceKey",
-  get: ({ get }) => {
-    const { getSymbol, ...helpers } = get(protocolQuery)
-    const { getIsPreIPO, getIsDelisted, getIsExternal } = helpers
-
-    return (token: string) =>
-      getIsExternal(token)
-        ? PriceKey.EXTERNAL
-        : getSymbol(token) === "MIR"
-        ? PriceKey.PAIR
-        : getIsPreIPO(token)
-        ? PriceKey.PRE
-        : getIsDelisted(token)
-        ? PriceKey.END
-        : PriceKey.ORACLE
-  },
-})
+export const useGetMintPriceKey = () => {
+  const { getSymbol, getIsPreIPO, getIsDelisted, getIsExternal } = useProtocol()
+  return (token: string) =>
+    getIsExternal(token)
+      ? PriceKey.EXTERNAL
+      : getSymbol(token) === "MIR"
+      ? PriceKey.PAIR
+      : getIsPreIPO(token)
+      ? PriceKey.PRE
+      : getIsDelisted(token)
+      ? PriceKey.END
+      : PriceKey.ORACLE
+}
 
 export const useCollateralOracleAssetInfo = () => {
   const { contracts, listed } = useProtocol()

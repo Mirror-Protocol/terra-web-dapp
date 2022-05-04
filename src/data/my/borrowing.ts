@@ -1,16 +1,15 @@
-import { useRecoilValue } from "recoil"
 import { gte, lte, minus, sum, times } from "../../libs/math"
 import calc from "../../libs/calc"
 import { useProtocol } from "../contract/protocol"
 import { useFindPrice } from "../contract/normalize"
 import { useMintPositions } from "../contract/positions"
-import { getMintPriceKeyQuery } from "../contract/collateral"
+import { useGetMintPriceKey } from "../contract/collateral"
 import { useGetMinRatio } from "../contract/collateral"
 import { getState } from "../../forms/modules/CollateralRatio"
 
 export const useMyBorrowing = () => {
   const { getIsDelisted, parseToken } = useProtocol()
-  const getPriceKey = useRecoilValue(getMintPriceKeyQuery)
+  const getPriceKey = useGetMintPriceKey()
   const { contents: positions, isLoading } = useMintPositions()
   const findPrice = useFindPrice()
   const getMinRatio = useGetMinRatio()
