@@ -10,7 +10,6 @@ import { exchangeRatesQuery } from "../native/exchange"
 import { useExternalBalances } from "../external/external"
 import { useExternalPrices } from "../external/external"
 import { protocolQuery, useProtocol } from "./protocol"
-import { collateralOracleAssetInfoQuery } from "./collateral"
 import {
   pairPoolQuery,
   usePairPool,
@@ -21,6 +20,7 @@ import {
 } from "./contract"
 import { tokenBalanceQuery } from "./contract"
 import { mintAssetConfigQuery } from "./contract"
+import { useCollateralOracleAssetInfo } from "./collateral"
 
 /* price */
 export const nativePricesQuery = selector({
@@ -133,21 +133,10 @@ export const minCollateralRatioState = atom<Dictionary>({
   default: {},
 })
 
-export const multipliersQuery = selector<Dictionary>({
-  key: "multiplierRatio",
-  get: ({ get }) => ({
-    uusd: "1",
-    ...dict(
-      get(collateralOracleAssetInfoQuery),
-      ({ multiplier }) => multiplier
-    ),
-  }),
-})
-
-export const multipliersState = atom<Dictionary>({
-  key: "multiplierState",
-  default: {},
-})
+export const useMultipliers = (): Dictionary => {
+  const { data } = useCollateralOracleAssetInfo()
+  return { uusd: "1", ...dict(data, ({ multiplier }) => multiplier) }
+}
 
 /* MIR Price */
 export const MIRPriceQuery = selector({
@@ -203,10 +192,6 @@ export const useTokenBalances = () => {
 /* store: asset info */
 export const useMinCollateralRatio = () => {
   return useStoreLoadable(minCollateralRatioQuery, minCollateralRatioState)
-}
-
-export const useMultipliers = () => {
-  return useStoreLoadable(multipliersQuery, multipliersState)
 }
 
 /* store: MIR Price */

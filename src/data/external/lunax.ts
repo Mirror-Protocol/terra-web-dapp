@@ -1,5 +1,5 @@
 import { selector } from "recoil"
-import { networkNameState } from "../network"
+import { networkNameState, useNetwork } from "../network"
 import { getContractQueryQuery } from "../utils/query"
 import { protocolQuery } from "../contract/protocol"
 import { addressState } from "../wallet"
@@ -16,6 +16,11 @@ const testnet: ListedItemExternal = {
   token: "terra1v0ypm2yc96alhn634pnwt4q4px482ukfqk02hx",
   icon: "https://raw.githubusercontent.com/stader-labs/assets/main/terra/LunaX_1.png",
   status: "LISTED",
+}
+
+export const useAsset = () => {
+  const { name } = useNetwork()
+  return { mainnet, testnet }[name]
 }
 
 export const assetQuery = selector({

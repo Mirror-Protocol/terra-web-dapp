@@ -2,8 +2,8 @@ import { selector } from "recoil"
 import { gt, times } from "../../libs/math"
 import { decimal } from "../../libs/parse"
 import { PriceKey } from "../../hooks/contractKeys"
-import { whitelistExternalQuery } from "../external/external"
-import { getTokensContractQueriesQuery } from "../utils/queries"
+import { useWhitelistExternal } from "../external/external"
+import { useGetTokensContractQueries } from "../utils/queries"
 import { useMinCollateralRatio, useMultipliers } from "./normalize"
 import { protocolQuery, useProtocol } from "./protocol"
 
@@ -26,30 +26,27 @@ export const getMintPriceKeyQuery = selector({
   },
 })
 
-export const collateralOracleAssetInfoQuery = selector({
-  key: "collateralOracleAssetInfo",
-  get: async ({ get }) => {
-    const { contracts, listed } = get(protocolQuery)
-    const whitelistExternal = get(whitelistExternalQuery)
+export const useCollateralOracleAssetInfo = () => {
+  const { contracts, listed } = useProtocol()
+  const whitelistExternal = useWhitelistExternal()
 
-    const tokens = [
-      "uluna",
-      ...listed
-        .filter(({ status }) => status !== "PRE_IPO")
-        .map(({ token }) => token),
-      ...Object.keys(whitelistExternal),
-    ]
+  const tokens = [
+    "uluna",
+    ...listed
+      .filter(({ status }) => status !== "PRE_IPO")
+      .map(({ token }) => token),
+    ...Object.keys(whitelistExternal),
+  ]
 
-    const getListedContractQueries = get(getTokensContractQueriesQuery(tokens))
-    return await getListedContractQueries<CollateralOracleAssetInfo>(
-      (token) => ({
-        contract: contracts["collateralOracle"],
-        msg: { collateral_asset_info: { asset: token } },
-      }),
-      "collateralOracleAssetInfo"
-    )
-  },
-})
+  const getListedContractQueries = useGetTokensContractQueries(tokens)
+  return getListedContractQueries<CollateralOracleAssetInfo>(
+    (token) => ({
+      contract: contracts["collateralOracle"],
+      msg: { collateral_asset_info: { asset: token } },
+    }),
+    "collateralOracleAssetInfo"
+  )
+}
 
 /* find */
 export const useGetMinRatio = () => {

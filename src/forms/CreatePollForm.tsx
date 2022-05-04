@@ -14,7 +14,7 @@ import useForm, { Values } from "../libs/useForm"
 import { validate as v, step, toBase64, placeholder } from "../libs/formHelpers"
 import { renderBalance } from "../libs/formHelpers"
 import { useProtocol } from "../data/contract/protocol"
-import { multipliersQuery } from "../data/contract/normalize"
+import { useMultipliers } from "../data/contract/normalize"
 import { useFindBalance } from "../data/contract/normalize"
 import { useGovConfig } from "../data/gov/config"
 import { useCommunityConfig } from "../data/contract/info"
@@ -86,7 +86,7 @@ const CreatePollForm = ({ type, headings }: Props) => {
   const { data: config } = useGovConfig()
   const communityConfig = useCommunityConfig()
   const mintAssetConfig = useRecoilValueLoadable(mintAssetConfigQuery)
-  const multipliers = useRecoilValueLoadable(multipliersQuery)
+  const multipliers = useMultipliers()
   const getDistributionWeight = useRecoilValueLoadable(
     getDistributionWeightQuery
   )
@@ -104,8 +104,7 @@ const CreatePollForm = ({ type, headings }: Props) => {
       ? mintAssetConfig.contents?.[token]
       : undefined
 
-  const getMultiplier = (token: string) =>
-    multipliers.state === "hasValue" ? multipliers.contents?.[token] : undefined
+  const getMultiplier = (token: string) => multipliers?.[token] ?? undefined
 
   const getWeight = (token: string) =>
     getDistributionWeight.state === "hasValue"

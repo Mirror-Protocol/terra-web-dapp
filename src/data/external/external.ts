@@ -3,6 +3,16 @@ import { useStore, useStoreLoadable } from "../utils/loadable"
 import * as anchor from "./anchor"
 import * as lunax from "./lunax"
 
+export const useWhitelistExternal = () => {
+  const anchorProtocol = anchor.useAnchorProtocol()
+  const LunaXAsset = lunax.useAsset()
+  return Object.assign(
+    {},
+    anchorProtocol.assets,
+    LunaXAsset && { [LunaXAsset.token]: LunaXAsset }
+  )
+}
+
 export const whitelistExternalQuery = selector({
   key: "whitelistExternal",
   get: ({ get }) => {

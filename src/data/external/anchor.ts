@@ -1,7 +1,7 @@
 import { gql, request } from "graphql-request"
 import { selector } from "recoil"
 import { getContractQueryQuery } from "../utils/query"
-import { mantleURLQuery, networkNameState } from "../network"
+import { mantleURLQuery, networkNameState, useNetwork } from "../network"
 import { getPairPricesQuery, getTokenBalancesQuery } from "./terraswap"
 
 interface Protocol {
@@ -75,6 +75,17 @@ const bombay: Protocol = {
 const placeholder: Protocol = {
   contracts: { anchorMarket: "" },
   assets: {},
+}
+
+export const useAnchorProtocol = () => {
+  const { name } = useNetwork()
+  const protocol = { mainnet, testnet, bombay }[name] ?? placeholder
+
+  const getToken = (symbol: string) =>
+    Object.values(protocol?.assets ?? {}).find((item) => item.symbol === symbol)
+      ?.token ?? ""
+
+  return { ...protocol, getToken }
 }
 
 export const anchorProtocolQuery = selector({
