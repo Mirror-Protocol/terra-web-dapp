@@ -81,20 +81,14 @@ export const tokenBalanceQuery = selector({
   },
 })
 
-export const lpTokenBalanceQuery = selector({
-  key: "lpTokenBalance",
-  get: async ({ get }) => {
-    const address = get(addressState)
-
-    if (address) {
-      const getListedContractQueries = get(getListedContractQueriesQuery)
-      return await getListedContractQueries<Balance>(
-        ({ lpToken }) => ({ contract: lpToken, msg: { balance: { address } } }),
-        "lpTokenBalance"
-      )
-    }
-  },
-})
+export const useLpTokenBalance = () => {
+  const address = useAddress()
+  const getListedContractQueries = useGetListedContractQueries()
+  return getListedContractQueries<Balance>(
+    ({ lpToken }) => ({ contract: lpToken, msg: { balance: { address } } }),
+    "lpTokenBalance"
+  )
+}
 
 export const useStakingRewardInfo = () => {
   const lcd = useLCDClient()

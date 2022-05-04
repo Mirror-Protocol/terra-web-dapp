@@ -17,8 +17,9 @@ import {
   usePairPool,
   useStakingRewardInfo,
   useGovStaker,
+  useLpTokenBalance,
 } from "./contract"
-import { tokenBalanceQuery, lpTokenBalanceQuery } from "./contract"
+import { tokenBalanceQuery } from "./contract"
 import { mintAssetConfigQuery } from "./contract"
 
 /* price */
@@ -92,18 +93,10 @@ const tokenBalancesState = atom<Dictionary>({
   default: {},
 })
 
-export const lpStakableBalancesQuery = selector({
-  key: "lpStakableBalances",
-  get: ({ get }) => {
-    const result = get(lpTokenBalanceQuery)
-    return result ? dict(result, ({ balance }) => balance) : {}
-  },
-})
-
-const lpStakableBalancesState = atom<Dictionary>({
-  key: "lpStakableBalancesState",
-  default: {},
-})
+export const useLpStakableBalances = () => {
+  const { data: result } = useLpTokenBalance()
+  return result ? dict(result, ({ balance }) => balance) : {}
+}
 
 export const useLpStakedBalances = () => {
   const { data: result } = useStakingRewardInfo()
@@ -216,11 +209,6 @@ export const useTokenBalances = () => {
   return useStore(tokenBalancesQuery, tokenBalancesState)
 }
 
-/* store: staking balance */
-export const useLpStakableBalances = () => {
-  return useStore(lpStakableBalancesQuery, lpStakableBalancesState)
-}
-
 /* store: asset info */
 export const useMinCollateralRatio = () => {
   return useStoreLoadable(minCollateralRatioQuery, minCollateralRatioState)
@@ -288,7 +276,7 @@ export const useFindStaking = () => {
   const slpRewardBalances = useSlpRewardBalances()
 
   const dictionary = {
-    [StakingKey.LPSTAKABLE]: lpStakableBalances.contents,
+    [StakingKey.LPSTAKABLE]: lpStakableBalances,
     [StakingKey.LPSTAKED]: lpStakedBalances,
     [StakingKey.SLPSTAKED]: slpStakedBalances,
     [StakingKey.LPREWARD]: lpRewardBalances,

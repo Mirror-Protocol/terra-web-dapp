@@ -1,3 +1,4 @@
+import { useQuery } from "react-query"
 import { selector, selectorFamily, useRecoilValue } from "recoil"
 import { request } from "graphql-request"
 import { ClientError, RequestDocument } from "graphql-request/dist/types"
@@ -6,7 +7,6 @@ import { protocolQuery } from "../contract/protocol"
 import { locationKeyState } from "../app"
 import { mantleURLQuery, useMantleURL } from "../network"
 import { parseResults } from "./parse"
-import { useQuery } from "react-query"
 
 export const LUNA: ListedItem = {
   token: "uluna",
@@ -17,27 +17,17 @@ export const LUNA: ListedItem = {
   status: "LISTED",
 }
 
-/* queries */
-export const getTokensContractQueriesQuery = selectorFamily({
-  key: "getTokensContractQueries",
-  get:
-    (tokens: string[]) =>
-    ({ get }) => {
-      const getContractQueries = get(getContractQueriesQuery)
+export const useGetTokensContractQueries = (tokens: string[]) => {
+  const getContractQueries = useGetContractQueries()
+  return <Parsed>(fn: (token: string) => ContractVariables, name: string) => {
+    const document = alias(
+      tokens.map((token) => ({ name: token, ...fn(token) })),
+      name
+    )
 
-      return async <Parsed>(
-        fn: (token: string) => ContractVariables,
-        name: string
-      ) => {
-        const document = alias(
-          tokens.map((token) => ({ name: token, ...fn(token) })),
-          name
-        )
-
-        return await getContractQueries<Parsed>(document, name)
-      }
-    },
-})
+    return getContractQueries<Parsed>(document, name)
+  }
+}
 
 export const useGetContractQueries = () => {
   const url = useMantleURL()
@@ -72,6 +62,28 @@ export const useGetListedContractQueries = () => {
     return getContractQueries<Parsed>(document, name)
   }
 }
+
+/* TODO: Remove */
+export const getTokensContractQueriesQuery = selectorFamily({
+  key: "getTokensContractQueries",
+  get:
+    (tokens: string[]) =>
+    ({ get }) => {
+      const getContractQueries = get(getContractQueriesQuery)
+
+      return async <Parsed>(
+        fn: (token: string) => ContractVariables,
+        name: string
+      ) => {
+        const document = alias(
+          tokens.map((token) => ({ name: token, ...fn(token) })),
+          name
+        )
+
+        return await getContractQueries<Parsed>(document, name)
+      }
+    },
+})
 
 export const getListedContractQueriesQuery = selector({
   key: "getListedContractQueries",
