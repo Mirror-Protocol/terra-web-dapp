@@ -308,7 +308,7 @@ export const useFindStaking = () => {
 }
 
 export const useLiquidity = () => {
-  const pairPool = usePairPool()
+  const { data: pairPool } = usePairPool()
   return dict(pairPool, (item) => times(parsePairPool(item).uusd, 2))
 }
 

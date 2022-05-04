@@ -10,7 +10,7 @@ const priceKey = PriceKey.PAIR
 
 const usePool = () => {
   const { getSymbol } = useProtocol()
-  const pairs = usePairPool()
+  const { data: pairs } = usePairPool()
   const findPrice = useFindPrice()
 
   /**

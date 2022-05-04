@@ -1,12 +1,22 @@
 import { useQuery } from "react-query"
-import { atom, selector } from "recoil"
+import { selector } from "recoil"
 import { useLCDClient } from "@terra-money/wallet-provider"
 import { useAddress } from "../../hooks"
-import { useStoreLoadable } from "../utils/loadable"
-import { getListedContractQueriesQuery } from "../utils/queries"
+import {
+  getListedContractQueriesQuery,
+  useGetListedContractQueries,
+} from "../utils/queries"
 import { priceKeyIndexState } from "../app"
 import { addressState } from "../wallet"
 import { protocolQuery, useProtocolAddress } from "./protocol"
+
+export const usePairPool = () => {
+  const getListedContractQueries = useGetListedContractQueries()
+  return getListedContractQueries<PairPool>(
+    ({ token, pair }) => ({ token, contract: pair, msg: { pool: {} } }),
+    "pairPool"
+  )
+}
 
 export const pairPoolQuery = selector({
   key: "pairPool",
@@ -18,11 +28,6 @@ export const pairPoolQuery = selector({
       "pairPool"
     )
   },
-})
-
-const pairPoolState = atom<Dictionary<PairPool> | undefined>({
-  key: "pairPoolState",
-  default: undefined,
 })
 
 export const oraclePriceQuery = selector({
@@ -115,9 +120,4 @@ export const useGovStaker = () => {
     async () =>
       await lcd.wasm.contractQuery<GovStaker>(contract, { staker: { address } })
   )
-}
-
-/* hooks */
-export const usePairPool = () => {
-  return useStoreLoadable(pairPoolQuery, pairPoolState)
 }

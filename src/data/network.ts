@@ -11,6 +11,11 @@ export const useNetwork = () => {
   return networks[name]
 }
 
+export const useMantleURL = () => {
+  const { mantle } = useNetwork()
+  return mantle
+}
+
 export const networkQuery = selector({
   key: "network",
   get: ({ get }) => {

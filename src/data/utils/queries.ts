@@ -1,11 +1,12 @@
-import { selector, selectorFamily } from "recoil"
+import { selector, selectorFamily, useRecoilValue } from "recoil"
 import { request } from "graphql-request"
 import { ClientError, RequestDocument } from "graphql-request/dist/types"
 import alias from "../contract/alias"
 import { protocolQuery } from "../contract/protocol"
 import { locationKeyState } from "../app"
-import { mantleURLQuery } from "../network"
+import { mantleURLQuery, useMantleURL } from "../network"
 import { parseResults } from "./parse"
+import { useQuery } from "react-query"
 
 export const LUNA: ListedItem = {
   token: "uluna",
@@ -37,6 +38,40 @@ export const getTokensContractQueriesQuery = selectorFamily({
       }
     },
 })
+
+export const useGetContractQueries = () => {
+  const url = useMantleURL()
+
+  const useContractQueries = <Parsed>(
+    document: RequestDocument,
+    name: string
+  ) =>
+    useQuery([url, document, name], async () => {
+      const result = await request<Dictionary<ContractData | null> | null>(
+        url + "?" + name,
+        document
+      )
+      return result ? parseResults<Parsed>(result) : undefined
+    })
+
+  return useContractQueries
+}
+
+export const useGetListedContractQueries = () => {
+  const { listedAll } = useRecoilValue(protocolQuery)
+  const getContractQueries = useGetContractQueries()
+
+  return <Parsed>(fn: GetDocument, name: string) => {
+    const document = alias(
+      listedAll
+        .filter((item) => fn(item))
+        .map((item) => ({ name: item.token, ...fn(item) })),
+      name
+    )
+
+    return getContractQueries<Parsed>(document, name)
+  }
+}
 
 export const getListedContractQueriesQuery = selector({
   key: "getListedContractQueries",
