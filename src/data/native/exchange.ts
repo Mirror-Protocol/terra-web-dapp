@@ -1,14 +1,10 @@
-import { selector } from "recoil"
-import { getNativeQueryQuery } from "../utils/query"
-import { ORACLE_DENOMS_EXCHANGE_RATES } from "./gqldocs"
+import { useQuery } from "react-query"
+import { useLCDClient } from "@terra-money/wallet-provider"
 
-export const exchangeRatesQuery = selector({
-  key: "exchangeRates",
-  get: async ({ get }) => {
-    const getNativeQuery = get(getNativeQueryQuery)
-    return await getNativeQuery<OracleDenomsExchangeRates>(
-      { document: ORACLE_DENOMS_EXCHANGE_RATES },
-      "OracleDenomsExchangeRates"
-    )
-  },
-})
+export const useExchangeRates = () => {
+  const lcd = useLCDClient()
+  return useQuery(
+    ["oracleDenomsExchangeRates", lcd.config],
+    async () => await lcd.oracle.exchangeRates()
+  )
+}

@@ -2,11 +2,12 @@ import { useQuery } from "react-query"
 import { atom, selector } from "recoil"
 import { fromPairs } from "ramda"
 import { useLCDClient } from "@terra-money/wallet-provider"
+import { Coins } from "@terra-money/terra.js"
 import { div, gt, times } from "../../libs/math"
 import { useAddress } from "../../hooks"
 import { PriceKey, BalanceKey, StakingKey } from "../../hooks/contractKeys"
 import { useStore, useStoreLoadable } from "../utils/loadable"
-import { exchangeRatesQuery } from "../native/exchange"
+import { useExchangeRates } from "../native/exchange"
 import { useExternalBalances } from "../external/external"
 import { useExternalPrices } from "../external/external"
 import { protocolQuery, useProtocol } from "./protocol"
@@ -23,16 +24,11 @@ import { mintAssetConfigQuery } from "./contract"
 import { useCollateralOracleAssetInfo } from "./collateral"
 
 /* price */
-export const nativePricesQuery = selector({
-  key: "nativePrices",
-  get: ({ get }) =>
-    reduceNativePrice(get(exchangeRatesQuery).OracleDenomsExchangeRates.Result),
-})
-
-const nativePricesState = atom<Dictionary>({
-  key: "nativePricesState",
-  default: {},
-})
+export const useNativePrices = () => {
+  const { data } = useExchangeRates()
+  const exchangeRates = data?.toData() ?? []
+  return reduceNativePrice(exchangeRates)
+}
 
 export const pairPricesQuery = selector({
   key: "pairPrices",
@@ -156,10 +152,6 @@ export const MIRPriceState = atom({
 /* store: price */
 export const usePairPrices = () => {
   return useStoreLoadable(pairPricesQuery, pairPricesState)
-}
-
-export const useNativePrices = () => {
-  return useStoreLoadable(nativePricesQuery, nativePricesState)
 }
 
 export const usePrePrices = () => {
@@ -319,7 +311,7 @@ const reduceStakingReward = (
     {}
   )
 
-const reduceNativePrice = (coins: MantleCoin[]): Dictionary => ({
+const reduceNativePrice = (coins: Coins.Data): Dictionary => ({
   uusd: "1",
-  uluna: coins.find(({ Denom }) => Denom === "uusd")?.Amount ?? "0",
+  uluna: coins.find(({ denom }) => denom === "uusd")?.amount ?? "0",
 })
