@@ -13,11 +13,11 @@ import { protocolQuery, useProtocol } from "./protocol"
 import { collateralOracleAssetInfoQuery } from "./collateral"
 import {
   pairPoolQuery,
-  oraclePriceQuery,
   usePairPool,
   useStakingRewardInfo,
   useGovStaker,
   useLpTokenBalance,
+  useOraclePrice,
 } from "./contract"
 import { tokenBalanceQuery } from "./contract"
 import { mintAssetConfigQuery } from "./contract"
@@ -44,15 +44,10 @@ const pairPricesState = atom<Dictionary>({
   default: {},
 })
 
-export const oraclePricesQuery = selector({
-  key: "oraclePrices",
-  get: ({ get }) => dict(get(oraclePriceQuery), ({ rate }) => rate),
-})
-
-const oraclePricesState = atom<Dictionary>({
-  key: "oraclePricesState",
-  default: {},
-})
+export const useOraclePrices = () => {
+  const { data: oraclePrices } = useOraclePrice()
+  return dict(oraclePrices, ({ rate }) => rate)
+}
 
 export const prePricesQuery = selector({
   key: "prePrices",
@@ -172,10 +167,6 @@ export const MIRPriceState = atom({
 /* store: price */
 export const usePairPrices = () => {
   return useStoreLoadable(pairPricesQuery, pairPricesState)
-}
-
-export const useOraclePrices = () => {
-  return useStoreLoadable(oraclePricesQuery, oraclePricesState)
 }
 
 export const useNativePrices = () => {

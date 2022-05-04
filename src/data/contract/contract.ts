@@ -30,23 +30,21 @@ export const pairPoolQuery = selector({
   },
 })
 
-export const oraclePriceQuery = selector({
-  key: "oraclePrice",
-  get: async ({ get }) => {
-    const { contracts } = get(protocolQuery)
-    const getListedContractQueries = get(getListedContractQueriesQuery)
-    return await getListedContractQueries<Rate>(
-      ({ token, symbol }) =>
-        symbol === "MIR"
-          ? undefined
-          : {
-              contract: contracts["oracleHub"],
-              msg: { price: { asset_token: token } },
-            },
-      "oraclePrice"
-    )
-  },
-})
+export const useOraclePrice = () => {
+  const { data: protocolAddress } = useProtocolAddress()
+  const getListedContractQueries = useGetListedContractQueries()
+  const contracts = protocolAddress?.contracts ?? {}
+  return getListedContractQueries<Rate>(
+    ({ token, symbol }) =>
+      symbol === "MIR"
+        ? undefined
+        : {
+            contract: contracts["oracleHub"],
+            msg: { price: { asset_token: token } },
+          },
+    "oraclePrice"
+  )
+}
 
 export const mintAssetConfigQuery = selector({
   key: "mintAssetConfig",
