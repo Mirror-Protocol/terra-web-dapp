@@ -37,11 +37,17 @@ export const useGetContractQueries = () => {
     name: string
   ) =>
     useQuery([url, document, name], async () => {
-      const result = await request<Dictionary<ContractData | null> | null>(
-        url + "?" + name,
-        document
-      )
-      return result ? parseResults<Parsed>(result) : undefined
+      try {
+        const result = await request<Dictionary<ContractData | null> | null>(
+          url + "?" + name,
+          document
+        )
+
+        return result ? parseResults<Parsed>(result) : undefined
+      } catch (error) {
+        const result = (error as ClientError).response.data
+        return result ? parseResults<Parsed>(result) : undefined
+      }
     })
 
   return useContractQueries
