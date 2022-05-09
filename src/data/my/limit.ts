@@ -8,10 +8,10 @@ import { TradeType } from "../../types/Types"
 export const useMyLimitOrder = () => {
   const priceKey = PriceKey.PAIR
 
-  const { parseToken, getIsDelisted } = useProtocol()
-  const { contents: orders, isLoading } = useLimitOrders()
   const findPrice = useFindPrice()
-
+  const { parseToken, getIsDelisted } = useProtocol()
+  const { data, isLoading } = useLimitOrders()
+  const orders = data ?? []
   const dataSource = orders.map((order) => {
     const { filled_offer_amount, filled_ask_amount } = order
     const { offer_asset, ask_asset } = order

@@ -7,6 +7,12 @@ import { mantleURLQuery } from "../network"
 import { parseResult } from "./parse"
 import { WASM } from "../native/gqldocs"
 
+/* refetch */
+export const RefetchOptions = {
+  DEFAULT: /* onMount, onFocus */ {},
+  INFINITY: { staleTime: Infinity, retry: false, refetchOnWindowFocus: false },
+}
+
 /* native */
 export const getNativeQueryQuery = selector({
   key: "getNativeQuery",

@@ -30,14 +30,14 @@ export const useNativePrices = () => {
   return reduceNativePrice(exchangeRates)
 }
 
+export const usePairPrices = () => {
+  const { data: pairPool } = usePairPool()
+  return dict(pairPool, calcPairPrice)
+}
+
 export const pairPricesQuery = selector({
   key: "pairPrices",
   get: ({ get }) => dict(get(pairPoolQuery), calcPairPrice),
-})
-
-const pairPricesState = atom<Dictionary>({
-  key: "pairPricesState",
-  default: {},
 })
 
 export const useOraclePrices = () => {
@@ -134,6 +134,12 @@ export const useMultipliers = (): Dictionary => {
   return { uusd: "1", ...dict(data, ({ multiplier }) => multiplier) }
 }
 
+export const useMIRPrice = () => {
+  const { getToken } = useProtocol()
+  const pairPrices = usePairPrices()
+  return pairPrices[getToken("MIR")]
+}
+
 /* MIR Price */
 export const MIRPriceQuery = selector({
   key: "MIRPrice",
@@ -148,11 +154,6 @@ export const MIRPriceState = atom({
   key: "MIRPriceState",
   default: "0",
 })
-
-/* store: price */
-export const usePairPrices = () => {
-  return useStoreLoadable(pairPricesQuery, pairPricesState)
-}
 
 export const usePrePrices = () => {
   return useStoreLoadable(prePricesQuery, prePricesState)
@@ -184,11 +185,6 @@ export const useTokenBalances = () => {
 /* store: asset info */
 export const useMinCollateralRatio = () => {
   return useStoreLoadable(minCollateralRatioQuery, minCollateralRatioState)
-}
-
-/* store: MIR Price */
-export const useMIRPrice = () => {
-  return useStoreLoadable(MIRPriceQuery, MIRPriceState)
 }
 
 /* hooks:find */
