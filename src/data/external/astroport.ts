@@ -15,10 +15,12 @@ export const useAstroLpStakedBalance = () => {
   const { whitelist, getToken } = useProtocol()
   const { lpToken } = whitelist[getToken("MIR")]
 
-  return useQuery(["AstroDeposit", address], () =>
-    lcd.wasm.contractQuery<string>(astro.generator, {
-      deposit: { lp_token: lpToken, user: address },
-    })
+  return useQuery(
+    ["AstroDeposit", address, lcd.config, whitelist, lpToken],
+    () =>
+      lcd.wasm.contractQuery<string>(astro.generator, {
+        deposit: { lp_token: lpToken, user: address },
+      })
   )
 }
 
@@ -29,9 +31,11 @@ export const useAstroPendingRewards = () => {
   const { whitelist, getToken } = useProtocol()
   const { lpToken } = whitelist[getToken("MIR")]
 
-  return useQuery(["AstroPendingRewards", address], () =>
-    lcd.wasm.contractQuery<AstroPendingRewards>(astro.generator, {
-      pending_token: { lp_token: lpToken, user: address },
-    })
+  return useQuery(
+    ["AstroPendingRewards", address, lcd.config, whitelist, lpToken],
+    () =>
+      lcd.wasm.contractQuery<AstroPendingRewards>(astro.generator, {
+        pending_token: { lp_token: lpToken, user: address },
+      })
   )
 }
