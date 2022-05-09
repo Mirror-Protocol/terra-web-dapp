@@ -6,7 +6,6 @@ import {
   getListedContractQueriesQuery,
   useGetListedContractQueries,
 } from "../utils/queries"
-import { priceKeyIndexState } from "../app"
 import { addressState } from "../wallet"
 import { useNetwork } from "../network"
 import { protocolQuery, useProtocolAddress } from "./protocol"
@@ -23,18 +22,6 @@ export const usePairPool = () => {
       )
   )
 }
-
-export const pairPoolQuery = selector({
-  key: "pairPool",
-  get: async ({ get }) => {
-    get(priceKeyIndexState)
-    const getListedContractQueries = get(getListedContractQueriesQuery)
-    return await getListedContractQueries<PairPool>(
-      ({ token, pair }) => ({ token, contract: pair, msg: { pool: {} } }),
-      "pairPool"
-    )
-  },
-})
 
 export const useOraclePrice = () => {
   const { data: protocolAddress } = useProtocolAddress()

@@ -1,9 +1,8 @@
-import { useRecoilValue } from "recoil"
 import { plus, times } from "../libs/math"
 import { format } from "../libs/parse"
 import { useProtocol } from "../data/contract/protocol"
 import { PriceKey } from "../hooks/contractKeys"
-import { pairPoolQuery } from "../data/contract/contract"
+import { usePairPool } from "../data/contract/contract"
 import { parsePairPool, useFindPrice } from "../data/contract/normalize"
 import Page from "../components/Page"
 import Table from "../components/Table"
@@ -13,7 +12,7 @@ const Info = () => {
   const priceKey = PriceKey.PAIR
   const { listed } = useProtocol()
   const find = useFindPrice()
-  const pairPool = useRecoilValue(pairPoolQuery)
+  const { data: pairPool } = usePairPool()
 
   const dataSource = !pairPool
     ? []
