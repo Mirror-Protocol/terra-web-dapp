@@ -30,7 +30,8 @@ const useStakingPoolInfo = () => {
           msg: { pool_info: { asset_token: token } },
         }),
         "stakingPoolInfo"
-      )
+      ),
+    { enabled: !!contracts["staking"] }
   )
 }
 

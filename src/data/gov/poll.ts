@@ -71,11 +71,14 @@ export const usePoll = (id: number) => {
   const { data: protocolAddress } = useProtocolAddress()
   const contracts = protocolAddress?.contracts ?? {}
   const parsePoll = useParsePoll()
-
-  return useQuery(["govPoll", lcd.config, contracts, id], async () => {
-    const poll = await lcd.wasm.contractQuery<PollData>(contracts["gov"], {
-      poll: { poll_id: id },
-    })
-    return parsePoll(poll)
-  })
+  return useQuery(
+    ["govPoll", lcd.config, contracts, id],
+    async () => {
+      const poll = await lcd.wasm.contractQuery<PollData>(contracts["gov"], {
+        poll: { poll_id: id },
+      })
+      return parsePoll(poll)
+    },
+    { enabled: !!contracts["gov"] }
+  )
 }

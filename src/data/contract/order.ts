@@ -11,6 +11,7 @@ export const useLimitOrder = (id: number) => {
     async () =>
       await lcd.wasm.contractQuery<Order>(contracts["limitOrder"], {
         order: { order_id: id },
-      })
+      }),
+    { enabled: !!contracts["limitOrder"] }
   )
 }

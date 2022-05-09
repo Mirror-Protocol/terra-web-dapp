@@ -12,7 +12,8 @@ export const useGovState = () => {
   const { data } = useQuery(
     ["govState", lcd.config, contracts],
     async () =>
-      await lcd.wasm.contractQuery<GovState>(contracts["gov"], { state: {} })
+      await lcd.wasm.contractQuery<GovState>(contracts["gov"], { state: {} }),
+    { enabled: !!contracts["gov"] }
   )
 
   return data ?? INITIAL

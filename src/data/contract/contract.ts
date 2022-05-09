@@ -39,7 +39,8 @@ export const useOraclePrice = () => {
                 msg: { price: { asset_token: token } },
               },
         "oraclePrice"
-      )
+      ),
+    { enabled: !!contracts["oracleHub"] }
   )
 }
 
@@ -60,7 +61,8 @@ export const useMintAssetConfig = () => {
                 msg: { asset_config: { asset_token: token } },
               },
         "mintAssetConfig"
-      )
+      ),
+    { enabled: !!contracts["mint"] }
   )
 }
 
@@ -134,7 +136,8 @@ export const useStakingRewardInfo = () => {
     async () =>
       await lcd.wasm.contractQuery<StakingRewardInfo>(contracts["staking"], {
         reward_info: { staker_addr: address },
-      })
+      }),
+    { enabled: !!contracts["staking"] }
   )
 }
 
@@ -148,6 +151,7 @@ export const useGovStaker = () => {
     async () =>
       await lcd.wasm.contractQuery<GovStaker>(contracts["gov"], {
         staker: { address },
-      })
+      }),
+    { enabled: !!contracts["gov"] }
   )
 }

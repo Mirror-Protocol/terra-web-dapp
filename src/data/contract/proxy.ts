@@ -18,6 +18,7 @@ export const useGetProxyWhitelist = () => {
       await lcd.wasm.contractQuery<{ proxies: ProxyItem[] }>(
         contracts["oracleHub"],
         { proxy_whitelist: {} }
-      )
+      ),
+    { enabled: !!contracts["oracleHub"] }
   )
 }

@@ -27,7 +27,8 @@ export const useGovAddressVoter = (id: number) => {
     async () =>
       await lcd.wasm.contractQuery<Voter>(contracts["gov"], {
         voter: { poll_id: id, address },
-      })
+      }),
+    { enabled: !!contracts["gov"] }
   )
 }
 

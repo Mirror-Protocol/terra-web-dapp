@@ -28,6 +28,7 @@ export const useLimitOrders = () => {
   //TODO Offset key
   return useQuery(
     ["limitOrders", lcd.config, address, contracts],
-    async () => await iterateAllPage(query, (data) => data?.order_id, LIMIT)
+    async () => await iterateAllPage(query, (data) => data?.order_id, LIMIT),
+    { enabled: !!contracts["limitOrder"] }
   )
 }

@@ -1,8 +1,6 @@
-import { useLCDClient } from "@terra-money/wallet-provider"
 import { useQuery } from "react-query"
-import { selector } from "recoil"
-import { getContractQueryQuery } from "../utils/query"
-import { protocolQuery, useProtocolAddress } from "./protocol"
+import { useLCDClient } from "@terra-money/wallet-provider"
+import { useProtocolAddress } from "./protocol"
 
 export const useMirrorTokenInfo = () => {
   const lcd = useLCDClient()
@@ -15,7 +13,8 @@ export const useMirrorTokenInfo = () => {
       await lcd.wasm.contractQuery<{ total_supply: string }>(
         contracts["mirrorToken"],
         { token_info: {} }
-      )
+      ),
+    { enabled: !!contracts["mirrorToken"] }
   )
 }
 
@@ -34,7 +33,8 @@ export const useMirrorTokenGovBalance = () => {
         }
       )
       return balance
-    }
+    },
+    { enabled: !!contracts["mirrorToken"] }
   )
 }
 
@@ -53,7 +53,8 @@ export const useMirrorTokenCommunityBalance = () => {
         }
       )
       return balance
-    }
+    },
+    { enabled: !!contracts["mirrorToken"] }
   )
 }
 
@@ -68,7 +69,8 @@ export const useCommunityConfig = () => {
       await lcd.wasm.contractQuery<{ spend_limit: string }>(
         contracts["community"],
         { config: {} }
-      )
+      ),
+    { enabled: !!contracts["community"] }
   )
 }
 
@@ -85,26 +87,10 @@ export const useFactoryDistributionInfo = () => {
       }>(contracts["factory"], { distribution_info: {} })
 
       return weights
-    }
+    },
+    { enabled: !!contracts["factory"] }
   )
 }
-
-export const factoryDistributionInfoQuery = selector({
-  key: "factoryDistributionInfo",
-  get: async ({ get }) => {
-    const { contracts } = get(protocolQuery)
-    const getContractQuery = get(getContractQueryQuery)
-    const response = await getContractQuery<{ weights: DistributionWeight[] }>(
-      {
-        contract: contracts["factory"],
-        msg: { distribution_info: {} },
-      },
-      "factoryDistributionInfo"
-    )
-
-    return response?.weights
-  },
-})
 
 export const useGetDistributionWeight = () => {
   const { data: weights } = useFactoryDistributionInfo()

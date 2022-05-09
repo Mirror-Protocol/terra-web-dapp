@@ -17,8 +17,8 @@ export const useAstroLpStakedBalance = () => {
 
   return useQuery(
     ["AstroDeposit", address, lcd.config, whitelist, lpToken],
-    () =>
-      lcd.wasm.contractQuery<string>(astro.generator, {
+    async () =>
+      await lcd.wasm.contractQuery<string>(astro.generator, {
         deposit: { lp_token: lpToken, user: address },
       })
   )
@@ -33,8 +33,8 @@ export const useAstroPendingRewards = () => {
 
   return useQuery(
     ["AstroPendingRewards", address, lcd.config, whitelist, lpToken],
-    () =>
-      lcd.wasm.contractQuery<AstroPendingRewards>(astro.generator, {
+    async () =>
+      await lcd.wasm.contractQuery<AstroPendingRewards>(astro.generator, {
         pending_token: { lp_token: lpToken, user: address },
       })
   )

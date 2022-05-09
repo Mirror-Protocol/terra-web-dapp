@@ -44,7 +44,8 @@ export const useCollateralOracleAssetInfo = () => {
           msg: { collateral_asset_info: { asset: token } },
         }),
         "collateralOracleAssetInfo"
-      )
+      ),
+    { enabled: !!contracts["collateralOracle"] }
   )
 }
 
