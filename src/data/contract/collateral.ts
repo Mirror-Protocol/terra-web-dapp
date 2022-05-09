@@ -1,3 +1,4 @@
+import { useQuery } from "react-query"
 import { gt, times } from "../../libs/math"
 import { decimal } from "../../libs/parse"
 import { PriceKey } from "../../hooks/contractKeys"
@@ -33,12 +34,17 @@ export const useCollateralOracleAssetInfo = () => {
   ]
 
   const getListedContractQueries = useGetTokensContractQueries(tokens)
-  return getListedContractQueries<CollateralOracleAssetInfo>(
-    (token) => ({
-      contract: contracts["collateralOracle"],
-      msg: { collateral_asset_info: { asset: token } },
-    }),
-    "collateralOracleAssetInfo"
+
+  return useQuery(
+    ["collateralOracleAssetInfo", tokens, contracts, listed, whitelistExternal],
+    async () =>
+      await getListedContractQueries<CollateralOracleAssetInfo>(
+        (token) => ({
+          contract: contracts["collateralOracle"],
+          msg: { collateral_asset_info: { asset: token } },
+        }),
+        "collateralOracleAssetInfo"
+      )
   )
 }
 

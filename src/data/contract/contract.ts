@@ -12,9 +12,13 @@ import { protocolQuery, useProtocolAddress } from "./protocol"
 
 export const usePairPool = () => {
   const getListedContractQueries = useGetListedContractQueries()
-  return getListedContractQueries<PairPool>(
-    ({ token, pair }) => ({ token, contract: pair, msg: { pool: {} } }),
-    "pairPool"
+  return useQuery(
+    ["pairPool"],
+    async () =>
+      await getListedContractQueries<PairPool>(
+        ({ token, pair }) => ({ token, contract: pair, msg: { pool: {} } }),
+        "pairPool"
+      )
   )
 }
 
@@ -34,15 +38,19 @@ export const useOraclePrice = () => {
   const { data: protocolAddress } = useProtocolAddress()
   const getListedContractQueries = useGetListedContractQueries()
   const contracts = protocolAddress?.contracts ?? {}
-  return getListedContractQueries<Rate>(
-    ({ token, symbol }) =>
-      symbol === "MIR"
-        ? undefined
-        : {
-            contract: contracts["oracleHub"],
-            msg: { price: { asset_token: token } },
-          },
-    "oraclePrice"
+  return useQuery(
+    ["oraclePrice", contracts],
+    async () =>
+      await getListedContractQueries<Rate>(
+        ({ token, symbol }) =>
+          symbol === "MIR"
+            ? undefined
+            : {
+                contract: contracts["oracleHub"],
+                msg: { price: { asset_token: token } },
+              },
+        "oraclePrice"
+      )
   )
 }
 
@@ -82,9 +90,13 @@ export const tokenBalanceQuery = selector({
 export const useLpTokenBalance = () => {
   const address = useAddress()
   const getListedContractQueries = useGetListedContractQueries()
-  return getListedContractQueries<Balance>(
-    ({ lpToken }) => ({ contract: lpToken, msg: { balance: { address } } }),
-    "lpTokenBalance"
+  return useQuery(
+    ["lpTokenBalance", address],
+    async () =>
+      await getListedContractQueries<Balance>(
+        ({ lpToken }) => ({ contract: lpToken, msg: { balance: { address } } }),
+        "lpTokenBalance"
+      )
   )
 }
 

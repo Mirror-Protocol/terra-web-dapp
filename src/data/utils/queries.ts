@@ -1,4 +1,3 @@
-import { useQuery } from "react-query"
 import { selector, selectorFamily, useRecoilValue } from "recoil"
 import { request } from "graphql-request"
 import { ClientError, RequestDocument } from "graphql-request/dist/types"
@@ -19,38 +18,35 @@ export const LUNA: ListedItem = {
 
 export const useGetTokensContractQueries = (tokens: string[]) => {
   const getContractQueries = useGetContractQueries()
-  return <Parsed>(fn: (token: string) => ContractVariables, name: string) => {
+  return async <Parsed>(
+    fn: (token: string) => ContractVariables,
+    name: string
+  ) => {
     const document = alias(
       tokens.map((token) => ({ name: token, ...fn(token) })),
       name
     )
 
-    return getContractQueries<Parsed>(document, name)
+    return await getContractQueries<Parsed>(document, name)
   }
 }
 
 export const useGetContractQueries = () => {
   const url = useMantleURL()
 
-  const useContractQueries = <Parsed>(
-    document: RequestDocument,
-    name: string
-  ) =>
-    useQuery([url, document, name], async () => {
-      try {
-        const result = await request<Dictionary<ContractData | null> | null>(
-          url + "?" + name,
-          document
-        )
+  return async <Parsed>(document: RequestDocument, name: string) => {
+    try {
+      const result = await request<Dictionary<ContractData | null> | null>(
+        url + "?" + name,
+        document
+      )
 
-        return result ? parseResults<Parsed>(result) : undefined
-      } catch (error) {
-        const result = (error as ClientError).response.data
-        return result ? parseResults<Parsed>(result) : undefined
-      }
-    })
-
-  return useContractQueries
+      return result ? parseResults<Parsed>(result) : undefined
+    } catch (error) {
+      const result = (error as ClientError).response.data
+      return result ? parseResults<Parsed>(result) : undefined
+    }
+  }
 }
 
 export const useGetListedContractQueries = () => {
