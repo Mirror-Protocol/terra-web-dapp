@@ -17,8 +17,10 @@ import { useProtocol } from "../data/contract/protocol"
 import { useMultipliers } from "../data/contract/normalize"
 import { useFindBalance } from "../data/contract/normalize"
 import { useGovConfig } from "../data/gov/config"
-import { useCommunityConfig } from "../data/contract/info"
-import { getDistributionWeightQuery } from "../data/contract/info"
+import {
+  useCommunityConfig,
+  useGetDistributionWeight,
+} from "../data/contract/info"
 import { mintAssetConfigQuery } from "../data/contract/contract"
 import { ProxyItem } from "../data/contract/proxy"
 
@@ -87,9 +89,7 @@ const CreatePollForm = ({ type, headings }: Props) => {
   const communityConfig = useCommunityConfig()
   const mintAssetConfig = useRecoilValueLoadable(mintAssetConfigQuery)
   const multipliers = useMultipliers()
-  const getDistributionWeight = useRecoilValueLoadable(
-    getDistributionWeightQuery
-  )
+  const getDistributionWeight = useGetDistributionWeight()
 
   const { mirrorToken, mint, collateralOracle } = contracts
   const { factory, community, gov, oracleHub } = contracts
@@ -106,10 +106,7 @@ const CreatePollForm = ({ type, headings }: Props) => {
 
   const getMultiplier = (token: string) => multipliers?.[token] ?? undefined
 
-  const getWeight = (token: string) =>
-    getDistributionWeight.state === "hasValue"
-      ? getDistributionWeight.contents(token)
-      : undefined
+  const getWeight = (token: string) => getDistributionWeight(token)
 
   const getFieldKeys = () => {
     // Determine here which key to use for each type.

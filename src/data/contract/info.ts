@@ -106,10 +106,7 @@ export const factoryDistributionInfoQuery = selector({
   },
 })
 
-export const getDistributionWeightQuery = selector({
-  key: "getDistributionWeight",
-  get: ({ get }) => {
-    const weights = get(factoryDistributionInfoQuery)
-    return (token: string) => weights?.find(([addr]) => addr === token)?.[1]
-  },
-})
+export const useGetDistributionWeight = () => {
+  const { data: weights } = useFactoryDistributionInfo()
+  return (token: string) => weights?.find(([addr]) => addr === token)?.[1]
+}
