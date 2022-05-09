@@ -14,7 +14,7 @@ const GovStakeInfo = () => {
   const { getToken } = useProtocol()
   const address = useAddress()
   const govStaked = useGovStaked()
-  const { contents: tokenBalances } = useTokenBalances()
+  const tokenBalances = useTokenBalances()
   const { [getToken("MIR")]: govStakable } = tokenBalances
 
   const contents = [

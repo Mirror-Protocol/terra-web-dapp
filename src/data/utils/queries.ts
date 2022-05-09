@@ -1,8 +1,8 @@
-import { selector, selectorFamily, useRecoilValue } from "recoil"
+import { selector, selectorFamily } from "recoil"
 import { request } from "graphql-request"
 import { ClientError, RequestDocument } from "graphql-request/dist/types"
 import alias from "../contract/alias"
-import { protocolQuery } from "../contract/protocol"
+import { protocolQuery, useProtocol } from "../contract/protocol"
 import { locationKeyState } from "../app"
 import { mantleURLQuery, useMantleURL } from "../network"
 import { parseResults } from "./parse"
@@ -50,7 +50,7 @@ export const useGetContractQueries = () => {
 }
 
 export const useGetListedContractQueries = () => {
-  const { listedAll } = useRecoilValue(protocolQuery)
+  const { listedAll } = useProtocol()
   const getContractQueries = useGetContractQueries()
 
   return <Parsed>(fn: GetDocument, name: string) => {

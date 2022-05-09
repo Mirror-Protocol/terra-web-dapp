@@ -8,12 +8,14 @@ import {
 } from "../utils/queries"
 import { priceKeyIndexState } from "../app"
 import { addressState } from "../wallet"
+import { useNetwork } from "../network"
 import { protocolQuery, useProtocolAddress } from "./protocol"
 
 export const usePairPool = () => {
   const getListedContractQueries = useGetListedContractQueries()
+  const { name } = useNetwork()
   return useQuery(
-    ["pairPool"],
+    ["pairPool", name],
     async () =>
       await getListedContractQueries<PairPool>(
         ({ token, pair }) => ({ token, contract: pair, msg: { pool: {} } }),
@@ -54,6 +56,27 @@ export const useOraclePrice = () => {
   )
 }
 
+export const useMintAssetConfig = () => {
+  const { data: protocolAddress } = useProtocolAddress()
+  const getListedContractQueries = useGetListedContractQueries()
+  const contracts = protocolAddress?.contracts ?? {}
+
+  return useQuery(
+    ["mintAssetConfig", contracts],
+    async () =>
+      await getListedContractQueries<MintAssetConfig>(
+        ({ token, symbol }) =>
+          symbol === "MIR"
+            ? undefined
+            : {
+                contract: contracts["mint"],
+                msg: { asset_config: { asset_token: token } },
+              },
+        "mintAssetConfig"
+      )
+  )
+}
+
 export const mintAssetConfigQuery = selector({
   key: "mintAssetConfig",
   get: async ({ get }) => {
@@ -71,6 +94,20 @@ export const mintAssetConfigQuery = selector({
     )
   },
 })
+
+export const useTokenBalance = () => {
+  const address = useAddress()
+  const { name } = useNetwork()
+  const getListedContractQueries = useGetListedContractQueries()
+  return useQuery(
+    ["tokenBalance", address, name],
+    async () =>
+      await getListedContractQueries<Balance>(
+        ({ token }) => ({ contract: token, msg: { balance: { address } } }),
+        "tokenBalance"
+      )
+  )
+}
 
 export const tokenBalanceQuery = selector({
   key: "tokenBalance",
@@ -104,11 +141,11 @@ export const useStakingRewardInfo = () => {
   const lcd = useLCDClient()
   const address = useAddress()
   const { data: protocolAddress } = useProtocolAddress()
-  const contract = protocolAddress?.contracts["staking"] ?? ""
+  const contracts = protocolAddress?.contracts ?? {}
   return useQuery(
-    ["stakingRewardInfo", address, contract, protocolAddress, lcd.config],
+    ["stakingRewardInfo", address, contracts, protocolAddress, lcd.config],
     async () =>
-      await lcd.wasm.contractQuery<StakingRewardInfo>(contract, {
+      await lcd.wasm.contractQuery<StakingRewardInfo>(contracts["staking"], {
         reward_info: { staker_addr: address },
       })
   )
@@ -118,10 +155,12 @@ export const useGovStaker = () => {
   const lcd = useLCDClient()
   const address = useAddress()
   const { data: protocolAddress } = useProtocolAddress()
-  const contract = protocolAddress?.contracts["gov"] ?? ""
+  const contracts = protocolAddress?.contracts ?? {}
   return useQuery(
-    ["govStaker", address, protocolAddress, contract, lcd.config],
+    ["govStaker", address, protocolAddress, contracts, lcd.config],
     async () =>
-      await lcd.wasm.contractQuery<GovStaker>(contract, { staker: { address } })
+      await lcd.wasm.contractQuery<GovStaker>(contracts["gov"], {
+        staker: { address },
+      })
   )
 }

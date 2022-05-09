@@ -14,6 +14,7 @@ export const useMyHolding = () => {
       const delisted = getIsDelisted(token)
       const priceKey = delisted ? PriceKey.END : PriceKey.PAIR
       const balance = findBalance(token)
+
       const price = findPrice(priceKey, token)
       const value = times(balance, price)
 
@@ -22,6 +23,5 @@ export const useMyHolding = () => {
     .filter(({ balance }) => gt(balance, 0))
 
   const totalValue = sum(dataSource.map(({ value }) => value))
-
   return { dataSource, totalValue, isLoading }
 }

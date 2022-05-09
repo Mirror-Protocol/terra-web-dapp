@@ -1,26 +1,25 @@
 import { useQuery } from "react-query"
-import { atom, selector } from "recoil"
+import { selector } from "recoil"
 import { fromPairs } from "ramda"
 import { useLCDClient } from "@terra-money/wallet-provider"
 import { Coins } from "@terra-money/terra.js"
 import { div, gt, times } from "../../libs/math"
 import { useAddress } from "../../hooks"
 import { PriceKey, BalanceKey, StakingKey } from "../../hooks/contractKeys"
-import { useStore, useStoreLoadable } from "../utils/loadable"
 import { useExchangeRates } from "../native/exchange"
 import { useExternalBalances } from "../external/external"
 import { useExternalPrices } from "../external/external"
-import { protocolQuery, useProtocol } from "./protocol"
+import { useProtocol } from "./protocol"
 import {
-  pairPoolQuery,
   usePairPool,
   useStakingRewardInfo,
   useGovStaker,
   useLpTokenBalance,
   useOraclePrice,
+  useMintAssetConfig,
+  useTokenBalance,
+  tokenBalanceQuery,
 } from "./contract"
-import { tokenBalanceQuery } from "./contract"
-import { mintAssetConfigQuery } from "./contract"
 import { useCollateralOracleAssetInfo } from "./collateral"
 
 /* price */
@@ -35,53 +34,32 @@ export const usePairPrices = () => {
   return dict(pairPool, calcPairPrice)
 }
 
-export const pairPricesQuery = selector({
-  key: "pairPrices",
-  get: ({ get }) => dict(get(pairPoolQuery), calcPairPrice),
-})
-
 export const useOraclePrices = () => {
   const { data: oraclePrices } = useOraclePrice()
   return dict(oraclePrices, ({ rate }) => rate)
 }
 
-export const prePricesQuery = selector({
-  key: "prePrices",
-  get: ({ get }) =>
-    dict(
-      get(mintAssetConfigQuery),
-      ({ ipo_params }) => ipo_params?.pre_ipo_price ?? "0"
-    ),
-})
+export const usePrePrices = () => {
+  const { data: config } = useMintAssetConfig()
+  return dict(config, ({ ipo_params }) => ipo_params?.pre_ipo_price ?? "0")
+}
 
-const prePricesState = atom<Dictionary>({
-  key: "prePricesState",
-  default: {},
-})
+export const useEndPrices = () => {
+  const { data: config } = useMintAssetConfig()
+  return dict(config, ({ end_price }) => end_price)
+}
 
-export const endPricesQuery = selector({
-  key: "endPrices",
-  get: ({ get }) =>
-    dict(get(mintAssetConfigQuery), ({ end_price }) => end_price),
-})
+export const useTokenBalances = () => {
+  const { data: result } = useTokenBalance()
+  return result ? dict(result, ({ balance }) => balance) : {}
+}
 
-const endPricesState = atom<Dictionary>({
-  key: "endPricesState",
-  default: {},
-})
-
-/* balance */
 export const tokenBalancesQuery = selector({
   key: "tokenBalances",
   get: ({ get }) => {
     const result = get(tokenBalanceQuery)
     return result ? dict(result, ({ balance }) => balance) : {}
   },
-})
-
-const tokenBalancesState = atom<Dictionary>({
-  key: "tokenBalancesState",
-  default: {},
 })
 
 export const useLpStakableBalances = () => {
@@ -115,19 +93,10 @@ export const useGovStaked = () => {
 }
 
 /* protocol - asset info */
-export const minCollateralRatioQuery = selector({
-  key: "minCollateralRatio",
-  get: ({ get }) =>
-    dict(
-      get(mintAssetConfigQuery),
-      ({ min_collateral_ratio }) => min_collateral_ratio
-    ),
-})
-
-export const minCollateralRatioState = atom<Dictionary>({
-  key: "minCollateralRatioState",
-  default: {},
-})
+export const useMinCollateralRatio = () => {
+  const { data } = useMintAssetConfig()
+  return dict(data, ({ min_collateral_ratio }) => min_collateral_ratio)
+}
 
 export const useMultipliers = (): Dictionary => {
   const { data } = useCollateralOracleAssetInfo()
@@ -138,29 +107,6 @@ export const useMIRPrice = () => {
   const { getToken } = useProtocol()
   const pairPrices = usePairPrices()
   return pairPrices[getToken("MIR")]
-}
-
-/* MIR Price */
-export const MIRPriceQuery = selector({
-  key: "MIRPrice",
-  get: ({ get }) => {
-    const { getToken } = get(protocolQuery)
-    const pairPrices = get(pairPricesQuery)
-    return pairPrices[getToken("MIR")]
-  },
-})
-
-export const MIRPriceState = atom({
-  key: "MIRPriceState",
-  default: "0",
-})
-
-export const usePrePrices = () => {
-  return useStoreLoadable(prePricesQuery, prePricesState)
-}
-
-export const useEndPrices = () => {
-  return useStoreLoadable(endPricesQuery, endPricesState)
 }
 
 /* store: balance */
@@ -176,15 +122,6 @@ export const useNativeBalances = () => {
   })
 
   return data ?? {}
-}
-
-export const useTokenBalances = () => {
-  return useStore(tokenBalancesQuery, tokenBalancesState)
-}
-
-/* store: asset info */
-export const useMinCollateralRatio = () => {
-  return useStoreLoadable(minCollateralRatioQuery, minCollateralRatioState)
 }
 
 /* hooks:find */
@@ -220,7 +157,7 @@ export const useFindBalance = () => {
 
   const dictionary = {
     [BalanceKey.NATIVE]: nativeBalances,
-    [BalanceKey.TOKEN]: tokenBalances.contents,
+    [BalanceKey.TOKEN]: tokenBalances,
     [BalanceKey.EXTERNAL]: externalBalances.contents,
   }
 

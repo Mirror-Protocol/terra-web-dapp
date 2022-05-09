@@ -6,7 +6,6 @@ import { parsePairPool } from "../contract/normalize"
 import { useProtocol, useProtocolAddress } from "../contract/protocol"
 import { usePairPool } from "../contract/contract"
 import { useFactoryDistributionInfo } from "../contract/info"
-import { RefetchOptions } from "../utils/query"
 
 const num = (number: BigNumber.Value) => new BigNumber(number)
 
@@ -31,8 +30,7 @@ const useStakingPoolInfo = () => {
           msg: { pool_info: { asset_token: token } },
         }),
         "stakingPoolInfo"
-      ),
-    { ...RefetchOptions.INFINITY }
+      )
   )
 }
 
