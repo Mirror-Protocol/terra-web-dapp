@@ -158,7 +158,7 @@ export const useFindBalance = () => {
   const dictionary = {
     [BalanceKey.NATIVE]: nativeBalances,
     [BalanceKey.TOKEN]: tokenBalances,
-    [BalanceKey.EXTERNAL]: externalBalances.contents,
+    [BalanceKey.EXTERNAL]: externalBalances,
   }
 
   return {

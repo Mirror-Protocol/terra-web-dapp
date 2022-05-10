@@ -4,7 +4,10 @@ import axios from "axios"
 import { ICON_URL } from "../../constants"
 import { getIsTokenNative, lookupSymbol } from "../../libs/parse"
 import { BalanceKey, PriceKey } from "../../hooks/contractKeys"
-import { whitelistExternalQuery } from "../external/external"
+import {
+  useWhitelistExternal,
+  whitelistExternalQuery,
+} from "../external/external"
 import { networkQuery, useNetwork } from "../network"
 
 export const useProtocolAddress = () => {
@@ -28,6 +31,119 @@ const protocolAddressQuery = selector({
     }
   },
 })
+
+export const useProtocolHelpers = () => {
+  const { data: protocolAddress } = useProtocolAddress()
+  const whitelistExternal = useWhitelistExternal()
+  const whitelist = protocolAddress?.whitelist ?? {}
+  const listedAll = Object.values(whitelist)
+  const listedAllExternal = Object.values(whitelistExternal)
+  const listed = listedAll.filter(({ status }) => status !== "DELISTED")
+
+  const getToken = (symbol?: string) =>
+    !symbol
+      ? ""
+      : getIsTokenNative(symbol)
+      ? symbol
+      : [...listed, ...listedAllExternal].find(
+          (item) => item.symbol === symbol
+        )?.["token"] ?? ""
+
+  const getSymbol = (token?: string) =>
+    !token
+      ? ""
+      : getIsTokenNative(token)
+      ? token
+      : { ...whitelist, ...whitelistExternal }[token]?.symbol ?? ""
+
+  const getIcon = (token: string) => {
+    const symbol = getSymbol(token)
+    const ticker = getIsTokenNative(symbol)
+      ? lookupSymbol(symbol)
+      : symbol.startsWith("m")
+      ? symbol.slice(1)
+      : symbol
+
+    const icon = ticker && `${ICON_URL}/${ticker}.png`
+    const externalIconURL = whitelistExternal[token]?.icon
+    return externalIconURL ?? icon
+  }
+
+  const getPriceKey = (key: PriceKey, token: string) =>
+    getIsExternal(token)
+      ? key
+      : getIsTokenNative(token)
+      ? PriceKey.NATIVE
+      : getIsDelisted(token)
+      ? PriceKey.END
+      : key === PriceKey.ORACLE
+      ? getIsPreIPO(key)
+        ? PriceKey.PRE
+        : key
+      : key
+
+  const getBalanceKey = (token: string) =>
+    getIsExternal(token)
+      ? BalanceKey.EXTERNAL
+      : getIsTokenNative(token)
+      ? BalanceKey.NATIVE
+      : BalanceKey.TOKEN
+
+  const getIsDelisted = (token: string) =>
+    whitelist[token]?.status === "DELISTED" ||
+    whitelistExternal[token]?.status === "DELISTED"
+
+  const getIsPreIPO = (token: string) => whitelist[token]?.status === "PRE_IPO"
+
+  const getIsExternal = (token: string) => !!whitelistExternal[token]
+
+  const toAssetInfo = (token: string) =>
+    getIsTokenNative(token)
+      ? { native_token: { denom: token } }
+      : { token: { contract_addr: token } }
+
+  const toToken = ({ amount, token }: Asset) => ({
+    amount,
+    info: toAssetInfo(token),
+  })
+
+  const parseAssetInfo = (info: AssetInfo | NativeInfo) => {
+    const token =
+      "native_token" in info
+        ? info.native_token.denom
+        : info.token.contract_addr
+
+    return { token, symbol: getSymbol(token) }
+  }
+
+  const parseToken = ({ amount, info }: AssetToken | NativeToken) => ({
+    amount,
+    ...parseAssetInfo(info),
+  })
+
+  return {
+    listed,
+    listedAll,
+    listedAllExternal,
+
+    getToken,
+    getSymbol,
+    getIcon,
+
+    getPriceKey,
+    getBalanceKey,
+
+    getIsDelisted,
+    getIsPreIPO,
+    getIsExternal,
+
+    toAssetInfo,
+    parseAssetInfo,
+
+    toToken,
+    parseToken,
+  }
+}
 
 const protocolHelpersQuery = selector({
   key: "protocolHelpers",

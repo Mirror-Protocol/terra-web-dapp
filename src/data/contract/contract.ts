@@ -8,7 +8,7 @@ import {
 } from "../utils/queries"
 import { addressState } from "../wallet"
 import { useNetwork } from "../network"
-import { protocolQuery, useProtocolAddress } from "./protocol"
+import { useProtocolAddress } from "./protocol"
 
 export const usePairPool = () => {
   const getListedContractQueries = useGetListedContractQueries()
@@ -65,24 +65,6 @@ export const useMintAssetConfig = () => {
     { enabled: !!contracts["mint"] }
   )
 }
-
-export const mintAssetConfigQuery = selector({
-  key: "mintAssetConfig",
-  get: async ({ get }) => {
-    const { contracts } = get(protocolQuery)
-    const getListedContractQueries = get(getListedContractQueriesQuery)
-    return await getListedContractQueries<MintAssetConfig>(
-      ({ token, symbol }) =>
-        symbol === "MIR"
-          ? undefined
-          : {
-              contract: contracts["mint"],
-              msg: { asset_config: { asset_token: token } },
-            },
-      "mintAssetConfig"
-    )
-  },
-})
 
 export const useTokenBalance = () => {
   const address = useAddress()

@@ -1,5 +1,5 @@
 import { atom, selector } from "recoil"
-import { useStore, useStoreLoadable } from "../utils/loadable"
+import { useStoreLoadable } from "../utils/loadable"
 import * as anchor from "./anchor"
 import * as lunax from "./lunax"
 
@@ -10,6 +10,18 @@ export const useWhitelistExternal = () => {
     {},
     anchorProtocol.assets,
     LunaXAsset && { [LunaXAsset.token]: LunaXAsset }
+  )
+}
+
+export const useExternalBalances = () => {
+  const anchorBalances = anchor.useAnchorBalances()
+  const LunaXAsset = lunax.useAsset()
+  const LunaXBalance = lunax.useBalance()
+
+  return Object.assign(
+    {},
+    anchorBalances,
+    LunaXAsset && { [LunaXAsset.token]: LunaXBalance }
   )
 }
 
@@ -62,16 +74,7 @@ export const externalBalancesQuery = selector({
   },
 })
 
-const externalBalancesState = atom<Dictionary>({
-  key: "externalBalancesState",
-  default: {},
-})
-
 /* store */
 export const useExternalPrices = () => {
   return useStoreLoadable(externalPricesQuery, externalPricesState)
-}
-
-export const useExternalBalances = () => {
-  return useStore(externalBalancesQuery, externalBalancesState)
 }

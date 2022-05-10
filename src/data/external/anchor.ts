@@ -1,8 +1,16 @@
-import { gql, request } from "graphql-request"
 import { selector } from "recoil"
+import { useQuery } from "react-query"
+import { useLCDClient } from "@terra-money/wallet-provider"
+import { gql, request } from "graphql-request"
+import { useMantleURL, useNetwork } from "../network"
+import { mantleURLQuery, networkNameState } from "../network"
 import { getContractQueryQuery } from "../utils/query"
-import { mantleURLQuery, networkNameState, useNetwork } from "../network"
-import { getPairPricesQuery, getTokenBalancesQuery } from "./terraswap"
+import {
+  getPairPricesQuery,
+  getTokenBalancesQuery,
+  useGetPairPrices,
+  useGetTokenBalances,
+} from "./terraswap"
 
 interface Protocol {
   contracts: Dictionary<string>
@@ -86,6 +94,70 @@ export const useAnchorProtocol = () => {
       ?.token ?? ""
 
   return { ...protocol, getToken }
+}
+
+const useLastSyncedHeight = () => {
+  const url = useMantleURL()
+  return useQuery(
+    ["lastSyncedHeight", url],
+    async () =>
+      await request<{ LastSyncedHeight: number }>(
+        url + "?height",
+        LAST_SYNCED_HEIGHT
+      )
+  )
+}
+
+export const useAnchorMarketEpochState = () => {
+  const lcd = useLCDClient()
+  const { contracts } = useAnchorProtocol()
+  const { data: height } = useLastSyncedHeight()
+
+  return useQuery(
+    ["anchorMarketEpochState", contracts, height?.LastSyncedHeight, lcd.config],
+    async () =>
+      await lcd.wasm.contractQuery<EpochState>(contracts["anchorMarket"], {
+        epoch_state: { block_height: height?.LastSyncedHeight ?? 0 + 1 },
+      }),
+    { enabled: !!contracts["anchorMarket"] && !!height }
+  )
+}
+
+export const useAnchorPrices = () => {
+  const { name } = useNetwork()
+  const { assets, getToken } = useAnchorProtocol()
+  const { data: epochState } = useAnchorMarketEpochState()
+  const getPairPrices = useGetPairPrices("anchorPairPrices")
+  const { data: pairPrices } = useQuery(
+    ["anchorPairPrices", assets, name],
+    async () => await getPairPrices(assets)
+  )
+
+  return {
+    ...pairPrices,
+    [getToken("aUST")]: epochState?.exchange_rate ?? "0",
+  }
+}
+
+export const useAnchorBalances = () => {
+  const { assets } = useAnchorProtocol()
+  const { name } = useNetwork()
+  const getTokenBalance = useGetTokenBalances("anchorTokenBalances")
+  return useQuery(
+    ["anchorTokenBalances", assets, name],
+    async () => await getTokenBalance(assets)
+  )
+}
+
+export const useAnchorAssetList = () => {
+  const { assets } = useAnchorProtocol()
+  const anchorPrices = useAnchorPrices()
+  const { data: anchorBalances } = useAnchorBalances()
+  return Object.keys(assets).map((token) => ({
+    ...assets[token],
+    price: anchorPrices[token],
+    balance: anchorBalances?.[token],
+  }))
 }
 
 export const anchorProtocolQuery = selector({

@@ -1,6 +1,9 @@
 import { FC } from "react"
 import classNames from "classnames/bind"
-import { useProtocol } from "../data/contract/protocol"
+import {
+  useProtocolAddress,
+  useProtocolHelpers,
+} from "../data/contract/protocol"
 import { lookupSymbol } from "../libs/parse"
 import AssetIcon from "./AssetIcon"
 import Delisted from "./Delisted"
@@ -16,7 +19,9 @@ interface Props {
 }
 
 const AssetItem: FC<Props> = ({ token, size, idle, children, ...props }) => {
-  const { whitelist, getSymbol, getIsDelisted } = useProtocol()
+  const { getSymbol, getIsDelisted } = useProtocolHelpers()
+  const { data: protocolAddress } = useProtocolAddress()
+  const whitelist = protocolAddress?.whitelist ?? {}
   const symbol = getSymbol(token)
   const ticker = props.formatTokenName?.(symbol) ?? lookupSymbol(symbol)
   const name = whitelist[token]?.name

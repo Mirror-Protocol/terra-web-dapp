@@ -1,8 +1,11 @@
+import { useQuery } from "react-query"
 import { selector } from "recoil"
-import { networkNameState, useNetwork } from "../network"
+import { useLCDClient } from "@terra-money/wallet-provider"
 import { getContractQueryQuery } from "../utils/query"
-import { protocolQuery } from "../contract/protocol"
+import { protocolQuery, useProtocol } from "../contract/protocol"
+import { networkNameState, useNetwork } from "../network"
 import { addressState } from "../wallet"
+import { useAddress } from "../../hooks"
 
 const mainnet: ListedItemExternal = {
   symbol: "LunaX",
@@ -30,6 +33,43 @@ export const assetQuery = selector({
     return { mainnet, testnet }[networkName]
   },
 })
+
+export const usePrice = () => {
+  const lcd = useLCDClient()
+  const asset = useAsset()
+  const { contracts } = useProtocol()
+
+  if (!asset) throw new Error("LunaX is not defined")
+
+  const { data: result } = useQuery(
+    ["collateralOraclePrice", contracts, asset],
+    async () =>
+      await lcd.wasm.contractQuery<{ rate: string }>(
+        contracts["collateralOracle"],
+        { collateral_price: { asset: asset.token } }
+      )
+  )
+  return result?.rate ?? "0"
+}
+
+export const useBalance = () => {
+  const lcd = useLCDClient()
+  const address = useAddress()
+  const asset = useAsset()
+
+  if (!asset) throw new Error("LunaX is not defined")
+
+  const { data: result } = useQuery(
+    ["collateralOraclePrice", address, asset],
+    async () =>
+      await lcd.wasm.contractQuery<Balance>(asset.token, {
+        balance: { address },
+      })
+  )
+  return result?.balance ?? "0"
+}
+
+/* TODO: Delete query */
 
 export const priceQuery = selector<string>({
   key: "LunaX.price",

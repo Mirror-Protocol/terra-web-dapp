@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react"
 import { useQuery } from "react-query"
-import { useRecoilValueLoadable } from "recoil"
 import { useLCDClient } from "@terra-money/wallet-provider"
 import { AccAddress } from "@terra-money/terra.js"
 
@@ -21,7 +20,7 @@ import {
   useCommunityConfig,
   useGetDistributionWeight,
 } from "../data/contract/info"
-import { mintAssetConfigQuery } from "../data/contract/contract"
+import { useMintAssetConfig } from "../data/contract/contract"
 import { ProxyItem } from "../data/contract/proxy"
 
 import { TooltipIcon } from "../components/Tooltip"
@@ -86,8 +85,8 @@ const CreatePollForm = ({ type, headings }: Props) => {
   const { contracts, getToken, toAssetInfo, parseAssetInfo } = useProtocol()
   const { contents: findBalance } = useFindBalance()
   const { data: config } = useGovConfig()
+  const { data: mintAssetConfig } = useMintAssetConfig()
   const communityConfig = useCommunityConfig()
-  const mintAssetConfig = useRecoilValueLoadable(mintAssetConfigQuery)
   const multipliers = useMultipliers()
   const getDistributionWeight = useGetDistributionWeight()
 
@@ -100,9 +99,7 @@ const CreatePollForm = ({ type, headings }: Props) => {
       : undefined
 
   const getMintAssetConfig = (token: string) =>
-    mintAssetConfig.state === "hasValue"
-      ? mintAssetConfig.contents?.[token]
-      : undefined
+    mintAssetConfig?.[token] ?? undefined
 
   const getMultiplier = (token: string) => multipliers?.[token] ?? undefined
 
