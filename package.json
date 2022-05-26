@@ -7,8 +7,8 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@material-ui/core": "^4.12.3",
-    "@terra-money/terra.js": "^3.0.8",
-    "@terra-money/wallet-provider": "^3.8.1",
+    "@terra-money/terra.js": "^3.1.0",
+    "@terra-money/wallet-provider": "^3.9.1",
     "@tippyjs/react": "^4.2.6",
     "axios": "^0.26.1",
     "bignumber.js": "^9.0.2",
