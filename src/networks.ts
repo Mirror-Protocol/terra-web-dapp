@@ -3,12 +3,12 @@ import { NetworkInfo } from "@terra-money/wallet-provider"
 type MirrorNetworkInfo = NetworkInfo & LocalNetworkConfig
 
 const networks: Record<string, MirrorNetworkInfo> = {
-  mainnet: {
-    name: "mainnet",
+  classic: {
+    name: "classic",
     chainID: "columbus-5",
-    lcd: "https://lcd.terra.dev",
+    lcd: "https://columbus-lcd.terra.dev",
     contract: "https://whitelist.mirror.finance/columbus.json",
-    mantle: "https://mantle.terra.dev/",
+    mantle: "https://columbus-mantle.terra.dev/",
     shuttle: {
       ethereum: "terra13yxhrk08qvdf5zdc9ss5mwsg5sf7zva9xrgwgc",
       bsc: "terra1g6llg3zed35nd3mh9zx6n64tfw3z67w2c48tn2",
@@ -65,6 +65,6 @@ const networks: Record<string, MirrorNetworkInfo> = {
   },
 }
 
-export const defaultNetwork = networks.mainnet
+export const defaultNetwork = networks.classic
 
 export default networks
