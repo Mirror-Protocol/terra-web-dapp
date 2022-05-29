@@ -9,7 +9,7 @@ interface Protocol {
   assets: Dictionary<ListedItemExternal>
 }
 
-const mainnet: Protocol = {
+const classic: Protocol = {
   contracts: {
     anchorMarket: "terra1sepfj7s0aeg5967uxnfk4thzlerrsktkpelm5s",
   },
@@ -81,7 +81,7 @@ export const anchorProtocolQuery = selector({
   key: "anchorProtocol",
   get: ({ get }) => {
     const networkName = get(networkNameState)
-    const protocol = { mainnet, testnet, bombay }[networkName] ?? placeholder
+    const protocol = { classic, testnet, bombay }[networkName] ?? placeholder
 
     const getToken = (symbol: string) =>
       Object.values(protocol?.assets ?? {}).find(
