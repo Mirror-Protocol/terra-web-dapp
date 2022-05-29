@@ -10,7 +10,8 @@ import MobileSplash from "./MobileSplash"
 const walletConnectChainIds: Record<number, NetworkInfo> = {
   0: networks.testnet,
   1: networks.mainnet,
-  2: networks.moonshine,
+  2: networks.classic,
+  3: networks.moonshine,
 }
 
 const WithInitialized: FC = ({ children }) => {
